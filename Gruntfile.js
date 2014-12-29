@@ -101,7 +101,7 @@ module.exports = function(grunt) {
 		// Watch files and build when they change
 		watch: {
 			css: {
-				files: [SOURCES_SASS+'*.scss', SOURCES_SASS+'/mixins/*.scss'],
+				files: [SOURCES_SASS+'*.scss'],
 				tasks: ['sass','autoprefixer']
 			},
 			js: {
@@ -109,7 +109,7 @@ module.exports = function(grunt) {
 				tasks: ['jshint','concat']
 			},
 			html: {
-				files: [COMPILED+'*', COMPILED_JS+'*.js'],
+				files: [COMPILED_SASS+'*', COMPILED+'*', COMPILED_JS+'*.js'],
 				options: {
 				    // Start a live reload server on the default port 35729
 				    livereload: true

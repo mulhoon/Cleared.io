@@ -15,7 +15,8 @@
     "grunt-contrib-watch": "*",
     "grunt-autoprefixer": "*",
     "load-grunt-tasks": "*",
-    "grunt-notify": "*"
+    "grunt-notify": "*",
+    "grunt-bower-concat":"*"
   },
   "repository": {
     "type": "git",

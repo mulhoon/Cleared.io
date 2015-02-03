@@ -17,6 +17,7 @@ module.exports = function(grunt) {
 		'global',
 		'view',
 		'api',
+		'storage',
 		'tools'
 	];
 

@@ -106,16 +106,17 @@ if (window.getSelection && document.createRange) {
 
 var savedSelection;
 
-function save(offset) {
-    savedSelection = saveSelection( document.getElementById("edit") , offset);
+function save(el, offset) {
+    var nl = el || document.getElementById("edit");
+    savedSelection = saveSelection( el || document.getElementById("edit") , offset);
 }
 
 
 
 
-function restore(offset) {
+function restore(el, offset) {
     if (savedSelection) {
-        restoreSelection(document.getElementById("edit"), savedSelection, offset);
+        restoreSelection( el || document.getElementById("edit"), savedSelection, offset);
     }
 }
     
@@ -169,6 +170,26 @@ function cancelEvent(e)
     }
 }
 
+
+// Faster .data() !!
+var Data = function(){
+  var warehouse = {};
+  var count = 1;
+  return{
+    reset: function(){
+      count = 1;
+      warehouse = {};
+    },
+    set: function(dom, data){
+      if(!dom.__data){
+        dom.__data = "hello" + count++;
+      }
+      warehouse[dom.__data] = data;
+    },
+    get: function(dom){
+      return warehouse[dom.__data];
+    }};
+}();
 
 
 // Animation Polyfill

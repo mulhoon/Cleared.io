@@ -4,9 +4,10 @@ var App = App || {};
 // Load scripts
 /* ------------------------------------------------------------ */
 var scripts = [
-	{jquery: 		"//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"},
+	{jquery: 		"js/vendor/jquery-2.1.3.min.js"},
 	{device: 		"js/vendor/device.min.js"},
 	{moment: 		"js/vendor/moment.min.js"},
+	{storage: 		"js/vendor/localforage.min.js"},
 	{transparency: 	"js/vendor/transparency.min.js"}
 ];
 

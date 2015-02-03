@@ -1,17 +1,25 @@
 App.view = (function () {
 
-	var area, input, debug, li, but, space, curtain, selectedElement;
+	var area, input, debug, li, but, space, curtain, selectedElement, tagEl, style,
+
+	_tags = {}, 
+	_mentions = {};
 
 	var _default = '<p><br/></p>';
-	var tick = '<span class="tick">☐</span>';
-	var tock = '<span class="tick">☑</span>';
+	var tick = '<span class="mark tick">☐</span>';
+	var tock = '<span class="mark tick">☑</span>';
+	var invalid = '<span class="mark invalid">☒</span>';
 	var done = '<span class="done"> @done</span>';
 
 	var init = function(){
 		console.log("All ready!");
 
+		App.storage.init();
+
+		style = $('#style');
 		area = $("#area");
 		edit = $("#edit");
+		tagEl = $("#tags");
 		debug = $("#debug");
 		input = $('#area2 .text');
 		li = $("<li/>");
@@ -21,60 +29,115 @@ App.view = (function () {
 		actions();
 	};
 
-	var parseTags = function(str) {
+	var parseTags = function(str, notags) {
 		var tags = {};
 		var newStr = str.replace(/[#]+[A-Za-z0-9-_():,/]+/g, function(u) {
 			var name = u.slice(1).split('(')[0];
-			tags[name] = true;
-			return "<span class='tag' data-id='"+name+"'>"+u+"</span>";
+			tags[name] = "<span class='tag' data-id='"+name+"'>"+u+"</span>";
+			return notags ? "" : tags[name];
 		});
 		return {str:newStr, tags:tags};
 	};
 
+	var parseMentions = function(str, notags) {
+		var mentions = {};
+		var newStr = str.replace(/[@]+[A-Za-z0-9-_():,/]+/g, function(u) {
+			var name = u.slice(1).split('(')[0];
+
+			mentions[name] = "<span class='mention' data-id='"+name+"'>"+u+"</span>";
+			return notags ? "" : mentions[name];
+		});
+		return {str:newStr, mentions:mentions};
+	};
+
 	var parseTodo = function(str, tags, el) {
-		var isList;
+		var classStr = '';
 		var start = str.slice(0,2);
-		el.removeClass('todo done');
+		// el.removeClass('todo done invalid');
 
-		if(start === '- ' || start === '☐ ' || start === '☑ '){
+		if(start === '- ' || start === '☐ ' || start === '☑ ' || start === '☒ '){
 
+			var tickEl = '';
 			if(str.length>=2){
-				el.addClass('todo');
+				// el.addClass('todo');
+				tickEl = tick;
 			}
 			if(tags.done){
-				el.addClass('done');
+				// el.addClass('done');
+				tickEl = tock;
+			}
+			if(tags.invalid){
+				// el.addClass('invalid');
+				tickEl = invalid;
 			}
 
-			str = (tags.done ? tock : tick) + " " + str.slice(2);
-			isList = true;
+			str = tickEl + " " + str.slice(2);
+			classStr = 'todo';
 		}
 
-		return {text:str, todo:isList};
+		return {text:str, todo:classStr};
 
 		// return str.replace(/- |☐/g, function(u) {
 		// 	return "<span class='tick'>☐</span>";
 		// });
 	};
 
+	var parseTitles = function(str, el){
+		var end = str.slice(-1);
+		return {str:str, classStr: end===':' ? ' title' : ''};
+	};
+
+
+	var shortcuts = {
+		'68': function(){ // Option+D
+			selectedElement.find('.mark').trigger(event_down);
+		}
+	};
 
 	var currentKey;
 
 	var actions = function(){
 		edit.on('keydown', function(e){
-			currentKey = e.keyCode;
+			currentKey = {
+				keyCode: e.keyCode,
+				altKey: e.altKey,
+				ctrlKey: e.ctrlKey,
+				metaKey: e.metaKey,
+				shiftKey: e.shiftKey
+			};
+			if(currentKey.metaKey){
+				if(shortcuts[currentKey.keyCode]){
+					shortcuts[currentKey.keyCode]();
+					e.preventDefault();
+				}
+			}
+			requestAnimationFrame(function(){
+				setFocus();
+			});
+			
+		}).on('keyup', function(){
+			currentKey = null;
+			setFocus();
 		});
 
 		// document.onkeyup = setFocus;
-		// document.onmouseup = setFocus;
+		document.onmouseup = setFocus;
 
-		edit.on(event_down, '.tick', toggle);
-
-
+		edit.on(event_down, '.mark', toggle);
 		edit.on('DOMSubtreeModified', 'p', formatLine);
+		tagEl.on(event_down, '.tag', toggleTag);
 
-		// edit.on('DOMCharacterDataModified', 'p', function(e){
-		// 	console.log(e);
-		// });
+		// setAndParse();
+		App.storage.load();
+
+		var tagDelay;
+		edit.on('input', function(e){
+			App.storage.save();
+			clearTimeout(tagDelay);
+			tagDelay = setTimeout(function(){
+				extractTags();
+			}, 500);
+		});
 		
 
 
@@ -85,19 +148,113 @@ App.view = (function () {
 		    // get text representation of clipboard
 		    var text = e.clipboardData.getData("text/plain");
 
-		    text = text
-		    .replace(/<br(\s*)\/*>/ig, '\n')
-		    .replace(/<[p|div]\s/ig, '\n$0')
-		    .replace(/(<([^>]+)>)/ig, "");
+		    // console.log(text);
+		    text = p(text).replace('<p></p>','').replace('<p><br></p>','');
+		    // console.log(text);
+		    // text = text
+		    // .replace(/<br(\s*)\/*>/ig, '\n')
+		    // .replace(/<[p|div]\s/ig, '\n$0')
+		    // .replace(/(<([^>]+)>)/ig, "");
 		    // insert text manually
-		    // document.execCommand("insertHTML", false, text);
-		    edit.html(text);
+		    document.execCommand("insertHTML", false, text);
+		    setAndParse(null, true);
+		    // edit.html(text);
 		});
 	};
 
+	var p = function(t){
+	    t = t.trim();
+	    return (t.length>0?'<p>'+t.replace(/\r?\n/g,'</p><p>')+'</p>':null);
+	};
 
-	var setFocus = function(e){
+	var extractTags = function(){
+		var text = edit[0].innerText;
+		var tags = parseTags(text, true).tags;
+		var mentions = parseMentions(text, true).mentions;
+
+		var html;
+		if(tags){
+			html = 'Tags:<div class="tags">';
+			for(var tag in tags){
+				html += tags[tag];
+			}
+			html += "</div>";
+		}
+		if(mentions){
+			html += 'Mentions:<div class="mentions">';
+			for(var mention in mentions){
+				html += mentions[mention];
+			}
+			html += "</div>";
+		}
+		tagEl.html(html);
+		// console.log(tags);
+	};
+
+	var toggleTag = function(e){
+		var that = $(this);
+		var toggle = !that.hasClass('active');
+		var id = that.data().id;
+		that.toggleClass('active', toggle);
+		hideItems();
+	};
+
+	var hideItems = function(ids){
+		
+		var activeItems = tagEl.find('.tag.active');
+		if(!activeItems.length){
+			style.html('');
+			return;
+		}
+		var html = '#edit p{display:none;} #edit p';
+		$(activeItems).each(function(i, a){
+			var that = $(this);
+			html += '.'+that.data().id;
+			// html += '#edit p.title:not(p.'+that.data().id+' ~ p.title){display:block;}\n';
+		});
+		html += '{display:block;}\n';
+
+		style.html(html);
+		console.log(html);
+	};
+
+	var setAndParse = function(value, nofocus){
+		if(!nofocus){
+			edit.focus();
+		}
+		if(value){
+			save();
+			edit.html(value);
+			restore();
+		}
+		
+
+		// save();
+		edit.find('p').trigger('DOMSubtreeModified');
+		setCursorToEnd(edit.find('p').last()[0]);
+		extractTags();
+		// 
+	};
+
+
+	var setFocus = function(el, force){
 		edit.find('.active').removeClass('active');
+		
+		// if(force){
+		// 	selectedElement = el;
+		// 	selectedElement.addClass('active');
+		// 	return;
+		// }
+		// if(el.type !== 'mouseup'){
+		// 	selectedElement = el;
+		// 	selectedElement.addClass('active');
+		// 	return;
+		// }
+		// if(typeof el === 'object'){
+		// 	selectedElement = el;
+		// 	selectedElement.addClass('active');
+		// 	return;
+		// }
 		selectedElement = window.getSelection().focusNode.parentNode;
 
 		// Fix for new line breaks
@@ -122,79 +279,91 @@ App.view = (function () {
 
 	var toggle = function(e){
 		var that = $(this);
+
 		if(e){
 			e.preventDefault();
 			e.stopPropagation();
 		}
-		var val = that.text();
-
-		var toggle = val==="☐" ? true : false;
-
-		var parent = that.parent();
-
 		
 
+		var val = that.text();
+
+		var checked = val==="☑" ? true : false;
+		var invalid = val==="☒" ? true : false;
+
+		var parent = that.parents('p');
+
+		// parent.focus();
+
+
+		// var mark = val;
+
+		save();
+
 		parent[0].modifying = true;
-		that.text(toggle ? '☑' : '☐');
+		that.replaceWith(checked || invalid ? tick : tock);
 		parent[0].modifying = false;
 
-		// console.log(that[0]);
-		// if(true){
-		// 	return;
 
-		// }
-		parent.toggleClass('done', toggle);
+		parent.toggleClass('done', checked);
+		parent.toggleClass('invalid', invalid);
 
+		
+		var newP;
 
-		// that = parent.find('.tick');
-
-		// that.parent().toggleClass('done', toggle);
-		if(toggle){
+		if(!checked && !invalid){
 			var date = moment().format("MMM,Do-hh:mm");
-			parent.append(" #done("+date+")");
-		}else{
+			// parent.append(" #done("+date+")");
+			// parent.append(" #done");
+			newP = $("<p>"+parent.text()+" #done</p>");
+			newP[0].modifying = false;
 
-			
+			parent.replaceWith(newP);
+			// parent.html(parent.text());
+		}else{
 
 			// parent[0].modifying = true;
 			// var str = parent.text().replace(/ @done/g, '');
+			var str;
 
-			var str = parent.text().replace(/ #done+[A-Za-z0-9-_():,]+| #done/g, '');
-
+			if(checked){
+				str = parent.text().replace(/ #done+[A-Za-z0-9-_():,]+| #done/g, '');
+			}
+			if(invalid){
+				str = parent.text().replace(/ #done+[A-Za-z0-9-_():,]+| #invalid/g, '');
+			}
 			// /[@]+[A-Za-z0-9-_():,/]+/g
 			// parent.find(".tag[data-id='done']").text('');
-			parent.html(str);
-			// parent[0].modifying = false;
-			// var trim = $.trim(parent.text());
+			
 			// save();
-			// parent.removeClass('todo');
+			// beginModify(parent);
+			// parent[0].modifying = true;
+
+			newP = $("<p>"+str+"</p>");
+			newP[0].modifying = false;
+			parent.replaceWith(newP);
+			// parent.html(str);
+			// parent[0].modifying = false;
+			// endModify(parent);
 			// restore();
-			// parent.text("hi");
+			
 		}
+		// parent = newP;
 		// parent[0].modifying = false;
-		// update();
-		
+
+		// restore();
+		restore();
+
+		requestAnimationFrame(function(){
+			newP.trigger('DOMSubtreeModified');
+		});
+
+		App.storage.save();
+
+
 	};
 
-	// var createDiv = function(style, html, span){
-	// 	var div = document.createElement(span ? "span" : "div");
-	// 	if(typeof html === 'object'){
-	// 		div.appendChild(html ? html : '');
-	// 	}else{
-	// 		div.innerHTML = html ? html : '';
-	// 	}
-	// 	div.className = style;
-	// 	return div;
-	// };
 
-	var makeItTodo = function(e){
-		// console.log(this);
-		console.log('make it todo');
-		// var el = $(selectedElement);
-		// if(el.hasClass('active') && el.hasClass('todo')){
-		// 	el.text('- ');
-		// }
-	};
 
 	var setDefault = function(){
 		save();
@@ -202,100 +371,69 @@ App.view = (function () {
 		restore();
 	};
 
-	var checkFormat = function(){
-		var oldItem = selectedElement;
-		setFocus();
-		// requestAnimationFrame(function(){
-
-			// console.log(oldItem[0]);
-			// console.log(selectedElement[0]);
-
-			var wasTodo = false;
-			if(oldItem){
-				wasTodo = oldItem.hasClass('todo');
-
-				// has the user hit return on a blank todo item?
-				if($.trim(oldItem.text())==='☐'){
-					oldItem.remove();
-					selectedElement.removeClass('todo');
-					wasTodo = false;
-				}
-			}
-			var text = selectedElement.text();
-
-			if(!text){
-				selectedElement.find('.tag').remove();
-				if(wasTodo){
-					selectedElement.html('- ');
-					// update();
-					save(2);
-					restore();
-				}else{
-					selectedElement.html('<br/>');
-				}
-				
-			}
-
-			// var lis = list.filter(function() { 
-			// 	return parseEmpty(this);
-			// });
-			// update();
-		// });
-
-		
-	};
 
 	var formatLine = function(e){
-
-		// console.log('s');
-		$('p.active').removeClass('active');
+		// $('p.active').removeClass('active');
 		var el = $(e.currentTarget);
 		var next = el.next();
-		el.addClass('active');
+		// var prev = el.prev();
+		// el.addClass('active');
 
-		// console.log(el[0]);
+		// console.log("oh");
 		// console.log(el[0].modifying);
+		// if(currentKey.keyCode===13){
+		// 	console.log("whooo");
+		// 	return false;
+		// }
+
 		if(el[0].modifying){
 			return false;
 		}
+
 		beginModify(el);
 
-
-		var offsets = 0;
 		var text = el.text();
-
-
-		console.log(el[0]);
-
-		var tags = parseTags(text);
-		var todo = parseTodo(tags.str, tags.tags, el);
+		var titles = parseTitles(text, el);
+		var tags = parseTags(titles.str);
+		var mentions = parseMentions(tags.str);
+		var todo = parseTodo(mentions.str, tags.tags, el);
 		var newText = todo.text;
-		
+
+
+		// Apply classes for item
+		var tagStr = titles.classStr + todo.todo;
+		for(var tag in tags.tags){
+			tagStr += ' '+tag;
+		}
+		el.attr("class", tagStr);
+
+		// var preTitle = el.prevAll('p.title').first();
+		// if(preTitle){
+		// 	preTitle.attr("class", "title "+tagStr);
+		// }
 
 		if(!newText){
-			// el.removeClass('todo');
 			el.html("<br/>");
 			el[0].modifying = false;
-			setCursorToEnd(el[0]);
+
+			endModify(el);
+			if(currentKey){
+				if(currentKey.metaKey && currentKey.keyCode===86){
+
+				}else{
+					setCursorToEnd(el[0]);
+				}
+			}else{
+				setCursorToEnd(el[0]);
+			}
 			return;
 		}else{
-			// modify(el, function(el){
-			
 			el.html(newText);
-			endModify(el, offsets);
-			// });
+			endModify(el);
 		}
 		
 		return false;
 	};
-
-	// var modify = function(el, callback, offset){
-	// 	el[0].modifying = true;
-	// 	save(offset || 0);
-	// 	callback(el);
-	// 	restore();
-	// 	el[0].modifying = false;
-	// };
 
 	var beginModify = function(el){
 		el[0].modifying = true;
@@ -303,119 +441,14 @@ App.view = (function () {
 	};
 
 	var endModify = function(el, offset){
-		// restore();
-		// save();
 		restore();
 		el[0].modifying = false;
 	};
 
-	var oldValue = "";
-	var update = function(e){
-
-		checkFormat();
-		
-		if(selectedElement[0].innerHTML==="<br>"){
-			return true;
-		}
-
-
-		newValue = edit.text();
-
-		if(newValue===oldValue){
-			console.log("same...");
-			if(!newValue){
-				console.log("empty...");
-				setDefault();
-			}else{
-				console.log("check...");
-				// checkFormat();
-			}
-			
-			// setFocus();
-			return false;
-		}
-
-		oldValue = newValue;
-
-
-		var cleansed = false;
-		var value = $.trim(edit.text());
-
-		if(!value){
-			setDefault();
-			cleansed = true;
-		}
-
-		if(!cleansed){
-			var list = edit.find('p');
-			var lis = list.filter(function() { 
-				return isTodo(this);
-			});
-		}
-		// setFocus();
-
-
-	};
-
-	// var removeTags = function(that){
-	// 	var tag = $(that).find('.done');
-	// 	if(!tag.length){
-	// 		return;
-	// 	}
-	// 	// console.log(tag.text());
-	// 	if($.trim(tag.text()) === ""){
-	// 		save(-1);
-	// 		tag.remove();
-	// 		restore();
-	// 	}
-	// 	return;
-	// };
-
-
-	var up = function(){
-		// setFocus();
-		// restoreSelection();
-	};
-
-
-	var isTodo = function(that){
-		that = $(that);
-
-		var offset = 0;
-		var html = that.html(); 
-		var text = that.text(); 
-
-		// console.log(text);
-
-		var todo = parseTodo(text, that);
-		var newText = todo.text;
-		newText = parseTags(newText);
-
-		if(!newText){
-			that.removeClass('todo');
-			//newText = ' ';
-			// offset = direction;
-		}else{
-			save();
-			that.html(newText);
-			restore();
-		}
-		// console.log(direction);
-
-		// if(direction){
-		// 	that.html(newText);
-		// }else{
-			// save(offset);
-			// that.html(newText);
-			// restore();
-		// }
-
-
-		return true;
-	};
 
 	return {
-		init:init
+		init:init,
+		setAndParse:setAndParse
 	};
 
 })();

@@ -107,7 +107,7 @@ module.exports = function(grunt) {
 			},
 			js: {
 				files: [SOURCES_JS+'*.js'],
-				tasks: ['jshint','concat', 'bower_concat']
+				tasks: ['jshint','concat']
 			},
 			html: {
 				files: [COMPILED_SASS+'*', COMPILED+'*', COMPILED_JS+'*.js'],
@@ -117,19 +117,19 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		bower_concat: {
-		  all: {
-		    dest: 'public/js/_bower.js',
-		    cssDest: 'public/css/_bower.css',
-		    exclude: [
-		      'jquery',
-		      'modernizr'
-		    ],
-		    bowerOptions: {
-		      relative: false
-		    }
-		  }
-		},
+		// bower_concat: {
+		//   all: {
+		//     dest: 'public/js/_bower.js',
+		//     cssDest: 'public/css/_bower.css',
+		//     exclude: [
+		//       'jquery',
+		//       'modernizr'
+		//     ],
+		//     bowerOptions: {
+		//       relative: false
+		//     }
+		//   }
+		// },
 		notify_hooks: {
 			options: {
 				enabled: true,

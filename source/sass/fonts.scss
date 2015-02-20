@@ -1,3 +1,27 @@
-@font-face {
 
+@font-face {
+	font-family: 'AvenirNextLTPro-UltLt';
+	src: url('../fonts/Avenir/2B8518_3_0.eot');
+	src: url('../fonts/Avenir/2B8518_3_0.eot?#iefix') format('embedded-opentype'),url('../fonts/Avenir/2B8518_3_0.woff') format('woff'),url('../fonts/Avenir/2B8518_3_0.ttf') format('truetype');
+}
+@font-face {
+	font-family: 'AvenirNextLTPro-Regular';
+	src: url('../fonts/Avenir/2B8518_4_0.eot');
+	src: url('../fonts/Avenir/2B8518_4_0.eot?#iefix') format('embedded-opentype'),url('../fonts/Avenir/2B8518_4_0.woff') format('woff'),url('../fonts/Avenir/2B8518_4_0.ttf') format('truetype');
+}
+@font-face {
+	font-family: 'AvenirNextLTPro-Medium';
+	src: url('../fonts/Avenir/2B8518_1E_0.eot');
+	src: url('../fonts/Avenir/2B8518_1E_0.eot?#iefix') format('embedded-opentype'),url('../fonts/Avenir/2B8518_1E_0.woff') format('woff'),url('../fonts/Avenir/2B8518_1E_0.ttf') format('truetype');
+}
+
+@font-face {
+	font-family: "ticks";
+	src: url("../fonts/ticks.eot");
+	src: url("../fonts/ticks.eot#iefix") format("embedded-opentype"),
+	url("../fonts/ticks.woff") format("woff"),
+	url("../fonts/ticks.ttf") format("truetype"),
+	url("../fonts/ticks.svg") format("svg");
+	font-weight: normal;
+	font-style: normal;
 }

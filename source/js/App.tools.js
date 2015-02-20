@@ -3,7 +3,7 @@
 
 // Load scripts and initiate the app
 var ready = function(){
-	head.js.apply(window, scripts).ready('transparency', function(){
+	head.js.apply(window, scripts).ready('autolink', function(){
 		checkDevice();
 		App.view.init();
 	});
@@ -31,144 +31,29 @@ var checkDevice = function(){
 	}
 };
 
-
-var saveSelection, restoreSelection;
-
-if (window.getSelection && document.createRange) {
-    saveSelection = function(containerEl, offset) {
-        offset = offset ? offset : 0;
-        var range = window.getSelection().getRangeAt(0);
-        var preSelectionRange = range.cloneRange();
-        preSelectionRange.selectNodeContents(containerEl);
-        preSelectionRange.setEnd(range.startContainer, range.startOffset);
-        var start = preSelectionRange.toString().length + offset;
-
-        return {
-            start: start,
-            end: start + range.toString().length
-        };
-    };
-
-    restoreSelection = function(containerEl, savedSel, offset) {
-        offset = offset ? offset : 0;
-        var charIndex = 0, range = document.createRange();
-        range.setStart(containerEl, 0);
-        range.collapse(true);
-        var nodeStack = [containerEl], node, foundStart = false, stop = false;
-        
-        while (!stop && (node = nodeStack.pop())) {
-            if (node.nodeType === 3) {
-                var nextCharIndex = charIndex + node.length;
-                if (!foundStart && savedSel.start >= charIndex && savedSel.start <= nextCharIndex) {
-                    range.setStart(node, savedSel.start - charIndex);
-                    foundStart = true;
-                }
-                if (foundStart && savedSel.end >= charIndex && savedSel.end <= nextCharIndex) {
-                    range.setEnd(node, savedSel.end - charIndex);
-                    stop = true;
-                }
-                charIndex = nextCharIndex;
-            } else {
-                var i = node.childNodes.length;
-                while (i--) {
-                    nodeStack.push(node.childNodes[i]);
-                }
-            }
-        }
-
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-    };
-} else if (document.selection && document.body.createTextRange) {
-    saveSelection = function(containerEl) {
-        var selectedTextRange = document.selection.createRange();
-        var preSelectionTextRange = document.body.createTextRange();
-        preSelectionTextRange.moveToElementText(containerEl);
-        preSelectionTextRange.setEndPoint("EndToStart", selectedTextRange);
-        var start = preSelectionTextRange.text.length;
-
-        return {
-            start: start,
-            end: start + selectedTextRange.text.length
-        };
-    };
-
-    restoreSelection = function(containerEl, savedSel) {
-        var textRange = document.body.createTextRange();
-        textRange.moveToElementText(containerEl);
-        textRange.collapse(true);
-        textRange.moveEnd("character", savedSel.end);
-        textRange.moveStart("character", savedSel.start);
-        textRange.select();
-    };
-}
-
-var savedSelection;
+// Cursor positions
 
 function save(el, offset) {
-    var nl = el || document.getElementById("edit");
-    savedSelection = saveSelection( el || document.getElementById("edit") , offset);
+    savedSel = rangy.getSelection().saveCharacterRanges(el);
+    // console.log(savedSel);
+    return savedSel;
 }
 
-
-
-
-function restore(el, offset) {
-    if (savedSelection) {
-        restoreSelection( el || document.getElementById("edit"), savedSelection, offset);
+function restore(el, offset, selection) {
+    if(selection){
+        savedSel = selection;
     }
-}
-    
-function saveSelection() {
-    if (window.getSelection) {
-        sel = window.getSelection();
-        if (sel.getRangeAt && sel.rangeCount) {
-            return sel.getRangeAt(0);
-        }
-    } else if (document.selection && document.selection.createRange) {
-        return document.selection.createRange();
+    if(offset){
+        savedSel[0].characterRange.start = offset;
+        savedSel[0].characterRange.end = offset;
     }
-    return null;
+    rangy.getSelection().restoreCharacterRanges(el, savedSel);
 }
 
-function restoreSelection(range) {
-    if (range) {
-        if (window.getSelection) {
-            sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-        } else if (document.selection && range.select) {
-            range.select();
-        }
-    }
-}
 
-function setCursorToEnd(ele){
-    var range = document.createRange();
-    var sel = window.getSelection();
-    range.setStart(ele, 1);
-    range.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(range);
-    ele.focus();
-}
 
-function cancelEvent(e)
-{
-    if (isInFocus === false && savedRange !== null) {
-        if (e && e.preventDefault) {
-            //alert("FF");
-            e.stopPropagation(); // DOM style (return false doesn't always work in FF)
-            e.preventDefault();
-        }
-        else {
-            window.event.cancelBubble = true;//IE stopPropagation
-        }
-        restoreSelection();
-        return false; // false = IE style
-    }
-}
+var savedSel = null;
+var savedSelActiveElement = null;
 
 
 // Faster .data() !!

@@ -1,0 +1,122 @@
+.page{
+	margin: 0 auto;
+	width:60%;
+	padding-top:40px;
+	display:block;
+	transition: transform 0.15s ease-in-out;
+	transform: translate3d(10%,0,0);
+	body.hideMenu &{
+		transform: translate3d(0,0,0);
+	}
+
+	@media #{$mobile} {
+		width:100%;
+	}
+	div{
+		line-height: 30px;
+	}
+	#edit{
+		position:relative;
+		outline:0;
+		margin:0;
+		padding:0;
+		-webkit-user-select:text;
+		min-height:100%;
+		padding-left:10px;
+		overflow:visible;
+		margin-bottom: 40px;
+		line-height: 150%;
+		display:block;
+		p{
+			white-space: pre-wrap;
+			word-wrap: initial;
+			position: relative;
+			max-width: 100%;
+			padding:0;
+			margin:0;
+			overflow:visible;
+
+			&.active{
+				// background:$highyellow;
+			}
+			
+			.highlight {
+				background:$lightyellow;
+				border-radius: 3px;
+			}
+
+			.mark{
+				cursor:pointer;
+				position:relative;
+				display:inline-block;
+				height:1em;
+				font-family: 'ticks';
+				color:$olive;
+				margin:0;
+				text-align: left;
+				&.invalid{
+					color:$red;
+				}
+			}
+
+
+			&.todo{
+	
+				&[data-id~='#done'], &[data-id~='#invalid']{
+					color:#CCC !important;
+					.tag{
+						color:#CCC;
+						&[data-id='#done']{
+							color: $olive;
+						}
+						&[data-id='#invalid']{
+							color: $red;
+						}
+					}
+					.mention{
+						color:#CCC;
+					}
+				}
+			}
+			&.title{
+				font-family: $light;
+				font-size: 2.5em;
+				padding-bottom: 20px;
+				padding-top: 20px;
+				margin:0;
+				position:relative;
+				line-height: 1em;
+				&:hover:after{
+					position:absolute;
+					content:'10%';
+					display:block;
+					top:0px;
+					color:#CCC;
+					user-select: none !important;
+					left:-10px;
+					text-align: right;
+					transform: translateX(-100%);
+					display:none;
+
+				}
+				&.done{
+					color:$fontcolor !important;
+				}
+			}
+		}
+	}
+}
+
+@keyframes yellow-fade {   
+   0% {background: $highyellow;}
+   100% {background: none;}
+}
+
+.blink {
+   animation: yellow-fade 0.5s ease-in 1;
+}
+
+#edit ::selection {
+    background:$lightyellow;
+    color:#032764;
+}

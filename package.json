@@ -1,9 +1,9 @@
 {
-  "name": "HeadStart",
+  "name": "Cleared",
   "version": "0.0.1",
-  "description": "HeadStart",
+  "description": "Cleared",
   "author": "Nic Mulvaney",
-  "copyright": "2013",
+  "copyright": "2015",
   "license": "MIT",
   "main": "index.html",
   "devDependencies": {
@@ -20,9 +20,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/mulhoon/HeadStart.git"
+    "url": "http://github.com/mulhoon/Cleared.git"
   },
   "bugs": {
-    "url": "https://github.com/mulhoon/HeadStart/issues"
+    "url": "https://github.com/mulhoon/Cleared/issues"
   }
 }

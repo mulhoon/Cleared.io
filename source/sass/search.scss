@@ -1,0 +1,29 @@
+#search{
+	width:50%;
+	position:absolute;
+	top:10px;
+	left:50px;
+	display:block;
+	z-index: 1;
+	transition: transform 0.15s ease-in-out;
+	transform: translate3d(35%,0,0);
+	body.hideMenu &{
+		transform: translate3d(0,0,0);
+	}
+	select{
+		position:absolute;
+		top:0;
+		left:0;
+		height:40px;
+		width:100%;
+		font-size: 1.25em;
+		border:0;
+		padding-left:0px;
+		font-family: $regular;
+		font-weight: 300;
+		outline:0;
+	}
+	input{
+		background:transparent;
+	}
+}

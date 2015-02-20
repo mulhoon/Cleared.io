@@ -2,43 +2,74 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>Liszt.</title>
-        <meta name="description" content="">
+        <title>Cleared</title>
+        <meta name="description" content="The notepad with superpowers.">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <!-- <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'> -->
         <script src="js/vendor/head.load.min.js"></script>
         <script src="js/app.js"></script>
         <link rel="stylesheet" href="css/main.css">
         <style type='text/css' id='style'></style>
+
+        <link rel="apple-touch-icon" sizes="57x57" href="img/favicon/apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="60x60" href="img/favicon/apple-touch-icon-60x60.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="img/favicon/apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="76x76" href="img/favicon/apple-touch-icon-76x76.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="img/favicon/apple-touch-icon-114x114.png">
+        <link rel="apple-touch-icon" sizes="120x120" href="img/favicon/apple-touch-icon-120x120.png">
+        <link rel="apple-touch-icon" sizes="144x144" href="img/favicon/apple-touch-icon-144x144.png">
+        <link rel="apple-touch-icon" sizes="152x152" href="img/favicon/apple-touch-icon-152x152.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon-180x180.png">
+        <link rel="icon" type="image/png" href="img/favicon/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="img/favicon/android-chrome-192x192.png" sizes="192x192">
+        <link rel="icon" type="image/png" href="img/favicon/favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="img/favicon/favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="img/favicon/manifest.json">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="msapplication-TileImage" content="img/favicon/mstile-144x144.png">
+        <meta name="theme-color" content="#ffffff">
+
     </head>
-    <body>
-        <section id="tags">
+    <body class="hideMenu">
+        <div class="menu"></div>
 
+        <section id="search">
+            <select class="chosen" data-placeholder="···" style="width:100%" multiple="" tabindex="1">
+            </select>
         </section>
+        <div id="sidebar">
+            <div class='panel'>
+                <header>
+                    <div class='setting-button'></div>
+                    <div class='newfile-button'></div>
+                    <div class="close"></div>
+
+                </header>
+                <div id="files"></div>
+                <footer><a href="http://www.nicmulvaney.com">Nic</a> &copy; 2015</footer>
+            </div>
+            <div class='panel settings'>
+                <header>
+                    <div class="close"></div>
+                    <div class='title'>Settings</div>
+                </header>
+                <div class='middle'>
+                </div>
+            </div>
+        </div>
         <section class="page">
-            <section id="edit" contenteditable="true" spellcheck="false">
-                <p class='title'>Loading...</p>
-            </section>
+            <section id="edit" contenteditable="true" spellcheck="true" ><p><br/></p></section>
         </section>
-        <!-- 
-                        <p>Liszt:</p>
-                <p>Use it to make notes and focus.</p>
-                <p>- You can make todo lists by typing '- ' on a new line</p>
-                <p>- You can mark items as #done</p>
-                <p>- You can even mark them as #invalid</p>
+        
 
-         -->
-        <!--[if lt IE 7]>
-            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
-        <![endif]-->
-
-        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. 
         <script>
-            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
-            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-            g.src='//www.google-analytics.com/ga.js';
-            s.parentNode.insertBefore(g,s)}(document,'script'));
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-40163004-5', 'auto');
+          ga('send', 'pageview');
+
         </script>
-        -->
     </body>
 </html>

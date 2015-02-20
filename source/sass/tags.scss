@@ -1,0 +1,28 @@
+.tag, .mention{
+	font-family: $medium;
+	color:#333;
+	font-weight: 500;
+	margin:0;
+	border:0;
+	outline:0;
+
+	&[data-id='#done']{
+		color: $olive;
+	}
+	&[data-id='#invalid']{
+		color: $red;
+	}
+	&[data-id='#bug']{
+		color: $red;
+	}
+	&[data-id='#enhancement']{
+		color: $paleblue;
+	}
+	&[data-id='#question']{
+		color: $purple;
+	}
+}
+
+.mention{
+	color:$blue;
+}

@@ -1,10 +1,23 @@
-
 $mobile: "screen and (max-width: 480px)";
 $tablet: "screen and (max-width: 768px)";
 
+// Colours
+
+$fontcolor: #666666;
 $green: #2ECC40;
 $olive: #3D9970;
-$red: #FF4136;
+$red: #F75E75;
 $maroon: #85144b;
 $blue: #0074D9;
 $aqua: #7FDBFF;
+$paleblue: #84b6eb;
+$purple: #cc317c;
+$lightyellow: rgba(255, 255, 125, 0.99);
+$highyellow: #ffffe0; 
+
+
+// Fonts
+
+$regular: 'AvenirNextLTPro-Regular', 'Avenir Next', 'Avenir', sans-serif;
+$medium: 'AvenirNextLTPro-Medium', 'Avenir Next', 'Avenir', sans-serif;
+$light: 'AvenirNextLTPro-UltLt', 'Avenir Next', 'Avenir', sans-serif;

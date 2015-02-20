@@ -1,0 +1,11 @@
+Todo, You're Doing It Wrong.
+
+A quick search for 'todo' on Google, Google Play or Apple App Store reveals 1000's of beautiful todo apps. So why can't I find a single one that works for me?
+
+Just a few moments with any of these apps and you quickly notice some patterns. Each task seems to contain a myriad of mindless settings; due dates, assignees, notes, reminders, subtasks, files, comments, priorities, archives. And most claim to be distraction free!
+
+Coupled with the fact that the humble todo is a used as a yardstick for new coding frameworks. It's literally the first thing a developer makes while learning, so thousands of these things litter the web.
+
+The only thing that ever worked for me is a simple txt file. And while I like the core idea of todotxt.com it becomes a little too techie in practice. One of my favourite todos was TaskPaper (hogbaysoftware.com/products/taskpaper) It's like a todo markdown, but without the markdown bit, just text. It just know's what you're writing about and formats it appropriately. Unfortunately it's no longer in development and I feel it really needs to break out of the desktop and onto the web. There is a similar version for Sublime called PlainTasks, but again, that's in the developers world.
+
+I decided to do something about it, analyse the best bits of these apps, and make a truly simple, yet powerful todo tool. This tool is called cleared.io. You already know the markup, it's TEXT, you use it in emails to your colleagues.

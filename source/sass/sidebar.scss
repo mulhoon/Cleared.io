@@ -1,0 +1,170 @@
+#sidebar{
+	position:fixed;
+	-webkit-user-select:none;
+	font-size: 14px;
+	width:20%;
+	min-width: 250px;
+	border-right: 1px solid #EEE;
+	min-height:100%;
+	overflow:hidden;
+	word-wrap: break-word;
+	background:#FFF;
+	padding-top:50px;
+	z-index: 2;
+	@media #{$mobile} {
+		display:none;
+	}
+
+	.panel{
+		footer, header{
+			position:absolute;
+			display:block;
+			text-align: center;
+			bottom:0;
+			height:50px;
+			line-height: 50px;
+			width:100%;
+			color:#999;
+			font-size: 0.75em;
+			text-align: center;
+		}
+		header{
+			bottom:auto;
+			top:0;
+			.title{
+				position:absolute;
+				width:100%;
+				height:50px;
+				line-height: 50px;
+				top:0;
+				left:0;
+				font-size: 1.5em;
+				z-index: -1;
+			}
+		}
+		position:absolute;
+		top:0;
+		left:0;
+		right:0;
+		bottom:0;
+		transition: transform 0.15s ease-in-out;
+		transform: translateX(0%);
+		&.settings{
+			transform: translateX(100%);
+		}
+		body.settings &{
+			transform: translateX(-100%);
+			&.settings{
+				transform: translateX(0%);
+			}
+		}
+		.middle{
+			position:absolute;
+			top:50px;
+			bottom:50px;
+			width:100%;
+			.row{
+				padding:20px;
+				border-bottom: 1px solid #EEE;
+				input{
+					float:right;
+				}
+			}
+		}
+	}
+	.close{
+		cursor:pointer;
+		width:40px;
+		height:50px;
+		background-image: url('../img/ios7-arrow-left.svg');
+		background-size: 50%;
+		background-position: center;
+		background-repeat: no-repeat;
+	}
+	.newfile-button, .setting-button{
+			cursor:pointer;
+			width:40px;
+			height:50px;
+			float: right;
+			background-image: url('../img/ios7-paper-outline.svg');
+			background-size: 50%;
+			background-position: center;
+			background-repeat: no-repeat;
+	}
+	.setting-button{
+		background-image: url('../img/ios7-settings.svg');
+	}
+	#tags, #mentions{
+		margin-top: 5px;
+		margin-bottom: 20px;
+	}
+	#files{
+		position:absolute;
+		border-top:1px solid #EEE;
+		border-bottom:1px solid #EEE;
+		width:100%;
+		top:50px;
+		bottom:100px;
+		overflow:hidden;
+		overflow-y: scroll; /* has to be scroll, not auto */
+		-webkit-overflow-scrolling: touch;
+		.file{
+			padding:15px;
+			border-bottom:1px solid #EEE;
+			cursor:pointer;
+			min-height: 40px;
+			position:relative;
+			width:100%;
+			span{
+				position:relative;
+				left:0px;
+				display:block;
+				cursor:pointer;
+				padding-left: 5px;
+				padding-right: 5px;
+				margin-bottom: 1px;
+				margin-left:-5px;
+				padding-right:15px;
+			}
+			&:hover{
+				color:#333;
+			}
+			&.active{
+				background:$olive;
+				color:#FFF;
+				border-bottom:1px solid $olive;
+				span{
+					background:$olive;
+				}
+			}
+			.trash{
+				cursor:pointer;
+				content:'';
+				position:absolute;
+				top:0px;
+				right:0px;
+				width:50px;
+				height:51px;
+				background-image: url('../img/trash-b.svg');
+				background-size: 40%;
+				background-position: center;
+				background-repeat: no-repeat;
+				opacity:0.2;
+				display:none;
+				&:hover{
+					opacity:1;
+
+				}
+			}
+			&.active .trash{
+				display:block;
+			}
+		}
+	}
+	transition: transform 0.15s ease-in-out;
+	transform: translate3d(0,0,0);
+	body.hideMenu &{
+		transform: translate3d(-100%,0,0);
+	}
+
+}

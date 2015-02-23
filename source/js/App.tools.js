@@ -44,8 +44,8 @@ function restore(el, offset, selection) {
         savedSel = selection;
     }
     if(offset){
-        savedSel[0].characterRange.start = offset;
-        savedSel[0].characterRange.end = offset;
+        savedSel[0].characterRange.start += offset;
+        savedSel[0].characterRange.end += offset;
     }
     rangy.getSelection().restoreCharacterRanges(el, savedSel);
 }

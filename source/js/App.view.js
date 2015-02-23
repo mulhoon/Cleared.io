@@ -104,6 +104,9 @@ App.view = (function () {
 		// Create Settings
 		settings();
 
+		// Mutation Observer
+		// mutate();
+
 		// Load files from storage when fonts are ready
 
 		WebFont.load({
@@ -210,7 +213,7 @@ App.view = (function () {
 		return false;
 	};
 
-	var parseTodo = function(str, tags, el) {
+	var parseTodo = function(str, tags) {
 		var classStr = '';
 		var start = str.slice(0,2);
 
@@ -233,7 +236,7 @@ App.view = (function () {
 		return {html:str, todo:classStr};
 	};
 
-	var parseTitles = function(str, el){
+	var parseTitles = function(str){
 		var end = str.slice(-1);
 		return {html:str, classStr: end===':' ? ' title' : ''};
 	};
@@ -256,19 +259,60 @@ App.view = (function () {
 					e.preventDefault();
 				}
 			}
-			setFocus();
 
+
+			// Fix for newlines
 			if(e.keyCode === 13) {
-				if($.trim(selectedElement.text())===_checkbox[0]){
-					selectedElement[0].modifying = true; 
+				var sel = save(selectedElement[0])[0].characterRange.start;
+				var text = selectedElement.text();
+				var pos = text.length;
+				var newStr = text.substr(sel, pos-sel);
+				var oldStr = text.substr(0, sel);
+				var cursorOffest = 0;
+				var isTodo = selectedElement.hasClass('todo');
+
+
+				if(!text){
+					selectedElement.attr('class', '').removeAttr('data-id data-children');
+				}
+
+				if(isTodo){
+					newStr = '- '+newStr;
+					cursorOffest = 2;
+				}
+
+				var parentTitle = selectedElement.hasClass('title') ? selectedElement : selectedElement.prevAll('.title').eq(0);
+				var parentTags = $.trim(parentTitle.attr('data-id'));
+				if(parentTags){
+					newStr += ' '+parentTags;
+				}
+
+				if(_filtered){
+					newStr += " "+_filter;
+				}
+
+
+				if($.trim(text)===_checkbox[0]){
 					selectedElement.html('<br/>').removeClass('todo');
-					selectedElement[0].modifying = false;
 					setCursortoStart(selectedElement[0]);
-					// setFocus();
+					e.preventDefault();
+					return;
+				}else if(isTodo){
+					newStr = !newStr ? '<br/>' : newStr;
+					selectedElement.text(oldStr);
+					formatLine();
+					var newP = $('<p>'+newStr+'</p>');
+					newP.insertAfter(selectedElement);
+					setCursortoStart(newP[0], cursorOffest);
+					setFocus();
+					formatLine();
 					e.preventDefault();
 					return;
 				}
 			}
+
+			// Set focus
+			document.onmousedown();
 
 			if (!e.metaKey || e.keyCode !== 90) {
 				return;
@@ -286,11 +330,10 @@ App.view = (function () {
 				}
 			}
 
-			e.preventDefault();
+			// e.preventDefault();
 
 		}).on('keyup', function(){
 			currentKey = {keyCode:null};
-			setFocus();
 		});
 
 		document.onmousedown = function(){
@@ -305,43 +348,22 @@ App.view = (function () {
 		edit.on(event_down, '.mark', toggleDone);//.on(event_down, '.mark', prevent);
 		edit.on('click', 'a', openURL);
 
-		edit.on('DOMSubtreeModified', 'p', function(e){
-			
-			var el = {};
-			if(e.target.nodeName==="SPAN" || e.target.nodeName==="A"){
-				el.target = e.target.offsetParent;
-			}else{
-				el.target = e.target;
-			}
+		// Notes
+		// DOMSubtreeModified is Deprecated
 
-			if(el.target.modifying){
-				return false;
-			}
-			// Solves span backspace problem - needs tuning
-			if(currentKey.keyCode===8 || currentKey.keyCode===13  ){
-				// console.log(el);
-				requestAnimationFrame(function(){
-					el.target.modifying = true;
-					formatLine(el);
-					el.target.modifying = false;
-					setFocus();
-				});
-			}else{
-				el.target.modifying = true;
-				formatLine(el);
-				el.target.modifying = false;
-			}
 
-		});
-		
 
 		var tagDelay;
 		edit.on('input', function(e){
-			
 			var value = edit.html();
 			if(!value){
 				setDefault();
 				return false;
+			}
+
+			setFocus();
+			if(selectedElement){
+				formatLine();
 			}
 
 			// To be improved....
@@ -473,68 +495,39 @@ App.view = (function () {
 	};
 
 
-	// Format's each line individually
 
-	var formatLine = function(e){
-
-		var el = $(e.target);
-		var prev = el.prev();
-		var text = el.text();
-		var cursorOffest = 0;
-
-		if(!text){
-			if(inArr(prev.text(), _checkbox)){
-				// return false;
-				// prev.remove();
-			}
-			else if(prev.hasClass('todo') && currentKey.keyCode===13){
-				text += "- ";
-				cursorOffest = 2;
-			}
-			if(currentKey.keyCode===13){
-				var parentTitle = el.prevAll('.title').eq(0);
-				var parentTags = $.trim(parentTitle.attr('data-id'));
-				if(parentTags){
-					text += ' '+parentTags;
-				}
-
-			}
-
-			if(_filtered){
-				text += " "+_filter;
-			}
-		}
-
-		var titles = 	parseTitles(text, el);
+	var formatLine = function(node){
+		var container = node || selectedElement;
+		var prev = 		container.prev();
+		var text = 		container.text();
+		var titles = 	parseTitles(text);
 		var highlight = parseTags(titles.html, 'highlight', '*', '*'); 
 		var tags = 		parseTags(highlight.html, 'tag', '#'); 
 		var mentions = 	parseTags(tags.html, 'mention', '@'); 
 		var links = 	parseLinks(mentions.html);
-
-		var todo = 		parseTodo(links.html, tags.tags, el);
+		var todo = 		parseTodo(links.html, tags.tags);
 		var newText = 	todo.html;
 
-
-		// Spply classes
+		// Apply classes
 		var attr = tags.tagString+' '+mentions.tagString;
-		el.attr("class", titles.classStr + todo.todo).attr("data-id", attr);
 
 		// Default empy text
 		newText = newText ? newText : "<br/>";
 
-		// Update new text
 		if(!opening){
-			save(el[0]);
-		}
-		// console.log('#'+newText+'#');
-		el.html(newText);
-		if(!opening){
-			// console.log(el[0]);
-			restore(el[0], cursorOffest);
+			save(container[0]);
 		}
 
+		container.html(newText)
+		.attr("class", titles.classStr + todo.todo)
+		.attr("data-id", attr);
 
+		if(!opening){
+			restore(container[0]);
+		}
 	};
+
+
 
 	var getAllText = function(){
 		return edit[0].innerText;
@@ -650,9 +643,9 @@ App.view = (function () {
 
 		edit.html(text);
 		edit.find('p').each(function(i, a){
-			$(a).trigger('DOMSubtreeModified');
+			formatLine($(a));
 		});
-		edit.trigger('input');
+		// edit.trigger('input');
 
 		opening = false;
 
@@ -665,13 +658,13 @@ App.view = (function () {
 			}
 			extractTags();
 		},1);
-
+		
 	};
 
 	var setCursortoStart = function(el, pos){
 		pos = !pos ? 0 : pos;
 		var range = rangy.createRange();
-		range.setStart(el || edit[0].childNodes[0], pos);
+		range.setStart(el ? el.childNodes[0] : edit[0].childNodes[0], pos);
 		range.collapse(true);
 		var sel = rangy.getSelection();
 		sel.setSingleRange(range);
@@ -685,19 +678,22 @@ App.view = (function () {
 		var node = window.getSelection().focusNode;
 		oldSelectedElement = selectedElement;
 
-		if(node){
-			selectedElement = node.parentNode;
+		if(node && !$(node).is('p')){
+			node = node.parentNode;
 		}
-		selectedElement = $(selectedElement);
+
+		selectedElement = $(node);
 		// Fix for children
 
-		if(selectedElement.is('section')){
+		/*if(selectedElement.is('section')){
 			selectedElement = oldSelectedElement;
-		}else if(!selectedElement.is('p')){
+		}else */if(!selectedElement.is('p')){
 			selectedElement = selectedElement.parents('p');
 		}
-
-		selectedElement.addClass('active');
+		// console.log(selectedElement);
+		if(selectedElement){
+			selectedElement.addClass('active');
+		}
 	};
 
 	var prevent = function(e){
@@ -730,13 +726,7 @@ App.view = (function () {
 
 		save(selectedElement[0]);
 
-		parent[0].modifying = true;
 		that.replaceWith(checked || invalid ? tick : tock);
-		parent[0].modifying = false;
-
-
-		parent.toggleClass('done', checked);
-		parent.toggleClass('invalid', invalid);
 
 		
 		var newP;
@@ -745,7 +735,6 @@ App.view = (function () {
 			// add tags
 			var date = options.appendDate.value ? moment().format("(MMM,Do HH:mm)") : '';
 			newP = $("<p>"+$.trim(parent.text())+" #done "+date+"</p>");
-			newP[0].modifying = false;
 			parent.replaceWith(newP);
 		}else{
 
@@ -759,18 +748,19 @@ App.view = (function () {
 			}
 
 			newP = $("<p>"+str+"</p>");
-			newP[0].modifying = false;
 			parent.replaceWith(newP);
 			
 		}
+
+		
 
 		if(isSelected){
 			restore(newP[0]);
 		}else{
 			restore(selectedElement[0]);
 		}
-		
-		newP.trigger('DOMSubtreeModified');
+
+		formatLine(newP);
 		extractTags();
 	};
 

@@ -2,8 +2,8 @@
 	position:fixed;
 	-webkit-user-select:none;
 	font-size: 14px;
-	width:20%;
-	min-width: 250px;
+	// width:20%;
+	width: 250px;
 	border-right: 1px solid #EEE;
 	min-height:100%;
 	overflow:hidden;
@@ -45,17 +45,16 @@
 		position:absolute;
 		top:0;
 		left:0;
-		right:0;
+		width:250px;
 		bottom:0;
-		transition: transform 0.15s ease-in-out;
-		transform: translateX(0%);
+		transition: left 0.15s ease-in-out;
 		&.settings{
-			transform: translateX(100%);
+			left: 250px;
 		}
 		body.settings &{
-			transform: translateX(-100%);
+			left: -250px;
 			&.settings{
-				transform: translateX(0%);
+				left: 0;
 			}
 		}
 		.middle{
@@ -161,10 +160,12 @@
 			}
 		}
 	}
-	transition: transform 0.15s ease-in-out;
-	transform: translate3d(0,0,0);
+	transition: left 0.15s ease-in-out;
+	// transform: translate3d(0,0,0);
+	left:0;
 	body.hideMenu &{
-		transform: translate3d(-100%,0,0);
+		left:-250px;
+		// transform: translate3d(-100%,0,0);
 	}
 
 }

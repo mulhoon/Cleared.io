@@ -3,10 +3,11 @@
 	width:60%;
 	padding-top:40px;
 	display:block;
-	transition: transform 0.15s ease-in-out;
-	transform: translate3d(10%,0,0);
+	position:relative;
+	transition: left 0.15s ease-in-out;
+	left:10%;
 	body.hideMenu &{
-		transform: translate3d(0,0,0);
+		left:0;
 	}
 
 	@media #{$mobile} {
@@ -48,8 +49,8 @@
 			.mark{
 				cursor:pointer;
 				position:relative;
-				display:inline-block;
 				height:1em;
+				vertical-align: top;
 				font-family: 'ticks';
 				color:$olive;
 				margin:0;
@@ -86,19 +87,19 @@
 				margin:0;
 				position:relative;
 				line-height: 1em;
-				&:hover:after{
-					position:absolute;
-					content:'10%';
-					display:block;
-					top:0px;
-					color:#CCC;
-					user-select: none !important;
-					left:-10px;
-					text-align: right;
-					transform: translateX(-100%);
-					display:none;
+				// &:hover:after{
+				// 	position:absolute;
+				// 	content:'10%';
+				// 	display:block;
+				// 	top:0px;
+				// 	color:#CCC;
+				// 	user-select: none !important;
+				// 	left:-10px;
+				// 	text-align: right;
+				// 	transform: translateX(-100%);
+				// 	display:none;
 
-				}
+				// }
 				&.done{
 					color:$fontcolor !important;
 				}

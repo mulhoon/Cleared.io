@@ -1,3 +1,9 @@
+
+// Notes
+// DOMSubtreeModified is Deprecated
+// Mutation Observers are slow
+// 'input' is the fastest
+
 App.view = (function () {
 
 	var body, 
@@ -65,7 +71,7 @@ App.view = (function () {
 
 	// Various defaults
 
-	var _checkbox = ['☐', '-', '*'];
+	var _checkbox = ['☐', '-', '*', '-[ ]'];
 	var _checkbox_ticked = ['☑', '✔'];
 	var _checkbox_invalid = ['☒', '✘'];
 	var _all = _checkbox.concat(_checkbox_ticked).concat(_checkbox_invalid);
@@ -103,9 +109,6 @@ App.view = (function () {
 
 		// Create Settings
 		settings();
-
-		// Mutation Observer
-		// mutate();
 
 		// Load files from storage when fonts are ready
 
@@ -217,18 +220,19 @@ App.view = (function () {
 		var classStr = '';
 		var start = str.slice(0,2);
 
-		if( inArr(start, _all) ){
+		if(inArr(start, _all) ){
 			var tickEl = '';
 			if(str.length>=2){
 				tickEl = tick;
 			}
-			if(tags.done){
-				tickEl = tock;
+			if(tags){
+				if(tags.done){
+					tickEl = tock;
+				}
+				if(tags.invalid){
+					tickEl = invalid;
+				}
 			}
-			if(tags.invalid){
-				tickEl = invalid;
-			}
-
 			str = tickEl + " " + str.slice(2);
 			classStr = 'todo';
 		}
@@ -257,61 +261,91 @@ App.view = (function () {
 				if(shortcuts[currentKey.keyCode]){
 					shortcuts[currentKey.keyCode]();
 					e.preventDefault();
+					return;
 				}
 			}
 
+			var selection, start, end;
 
-			// Fix for newlines
+			// If return is pressed, let's do some magic...
+
 			if(e.keyCode === 13) {
-				var sel = save(selectedElement[0])[0].characterRange.start;
+				selection = save(selectedElement[0])[0].characterRange;
+				start = selection.start;
+				end = selection.end;
 				var text = selectedElement.text();
 				var pos = text.length;
-				var newStr = text.substr(sel, pos-sel);
-				var oldStr = text.substr(0, sel);
+				var newStr = text.substr(end, pos-end);
+				var oldStr = text.substr(0, start);
 				var cursorOffest = 0;
 				var isTodo = selectedElement.hasClass('todo');
+				var isTitle = selectedElement.hasClass('title');
+				var isEnd = end===pos;
+				var isStart = start===0;
+				var additions = newStr;
 
 
-				if(!text){
-					selectedElement.attr('class', '').removeAttr('data-id data-children');
-				}
-
-				if(isTodo){
-					newStr = '- '+newStr;
+				if(isTodo && !parseTodo(newStr).todo){
+					additions = '- '+additions;
 					cursorOffest = 2;
 				}
 
-				var parentTitle = selectedElement.hasClass('title') ? selectedElement : selectedElement.prevAll('.title').eq(0);
+				if(!text || isTodo || (isTitle && !isEnd)){
+					selectedElement.attr('class', '').removeAttr('data-id data-children');
+				}
+
+				var parentTitle = isTitle ? selectedElement : selectedElement.prevAll('.title').eq(0);
 				var parentTags = $.trim(parentTitle.attr('data-id'));
+
 				if(parentTags){
-					newStr += ' '+parentTags;
+					additions += ' '+parentTags;
 				}
 
 				if(_filtered){
-					newStr += " "+_filter;
+					additions += " "+_filter;
 				}
 
 
-				if($.trim(text)===_checkbox[0]){
-					selectedElement.html('<br/>').removeClass('todo');
-					setCursortoStart(selectedElement[0]);
+				if($.trim(oldStr)===_checkbox[0]){
+					newStr = !newStr ? '<br/>' : newStr;
+					selectedElement.html(newStr).removeClass('todo');
+					setCursor(selectedElement[0]);
 					e.preventDefault();
+					document.onmousedown();
 					return;
-				}else if(isTodo){
+				}else if((isTodo && !isStart) || (isTitle && !isEnd && !isStart) || parentTags || _filtered){
+					newStr = additions;
 					newStr = !newStr ? '<br/>' : newStr;
 					selectedElement.text(oldStr);
 					formatLine();
 					var newP = $('<p>'+newStr+'</p>');
 					newP.insertAfter(selectedElement);
-					setCursortoStart(newP[0], cursorOffest);
+					setCursor(newP[0], cursorOffest);
 					setFocus();
-					formatLine();
+					formatLine(newP);
+					document.onmousedown();
 					e.preventDefault();
 					return;
 				}
 			}
 
-			// Set focus
+			if(e.keyCode === 40){ // Down arrow
+				selection = save(selectedElement[0]);
+
+				// Fix selection overflow
+				var len = selectedElement.next().text().length;
+			    if(selection[0].characterRange.start > len){
+			    	selection[0].characterRange.start = len;
+			    	selection[0].characterRange.end = len;
+			    }
+
+				restore(selectedElement.next()[0], 0, selection);
+				document.onmousedown();
+				e.preventDefault();
+				return;
+			}
+
+
 			document.onmousedown();
 
 			if (!e.metaKey || e.keyCode !== 90) {
@@ -347,10 +381,6 @@ App.view = (function () {
 
 		edit.on(event_down, '.mark', toggleDone);//.on(event_down, '.mark', prevent);
 		edit.on('click', 'a', openURL);
-
-		// Notes
-		// DOMSubtreeModified is Deprecated
-
 
 
 		var tagDelay;
@@ -428,26 +458,29 @@ App.view = (function () {
 		// e.preventDefault();
 		// console.log(e);
 		// e.clipboardData.setData("text/html", rangy.getSelection().toHtml());
-		e.clipboardData.setData("text/liszt", 'local');
+		// e.clipboardData.setData("text/liszt", 'local');
 	};
+
 
 	var paste = function(e){
-		var isFromHere = e.clipboardData.getData("text/liszt");
 		e.preventDefault();
 
-		var text;
-		if(isFromHere){
-			text = isFromHere;
-		}else{
-			// Strip html if from external source
-			text = e.clipboardData.getData("text/plain");
-		}
+		var selection = save(edit[0])[0].characterRange;
+		var start = selection.start;
+		var end = selection.end;
+
+		var text = e.clipboardData.getData("text/plain");
+		text = p(text);
+
 		document.execCommand("insertHTML", false, text);
-		requestAnimationFrame(function(){
-			setAndParse(getAllText());
+
+		opening = true;
+		edit.find('p').each(function(i, a){
+			formatLine($(a));
 		});
-		
+		opening = false;
 	};
+
 
 	var openURL = function(e){
 		var url = $(this).attr('href');
@@ -654,14 +687,14 @@ App.view = (function () {
 		
 		setTimeout(function(){
 			if(isReset){
-				setCursortoStart();
+				setCursor();
 			}
 			extractTags();
 		},1);
 		
 	};
 
-	var setCursortoStart = function(el, pos){
+	var setCursor = function(el, pos){
 		pos = !pos ? 0 : pos;
 		var range = rangy.createRange();
 		range.setStart(el ? el.childNodes[0] : edit[0].childNodes[0], pos);
@@ -761,6 +794,7 @@ App.view = (function () {
 		}
 
 		formatLine(newP);
+		setFocus();
 		extractTags();
 	};
 
@@ -768,7 +802,7 @@ App.view = (function () {
 
 	var setDefault = function(){
 		edit.html(_default);
-		setCursortoStart();
+		setCursor();
 	};
 
 

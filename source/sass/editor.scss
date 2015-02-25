@@ -12,6 +12,7 @@
 
 	@media #{$mobile} {
 		width:100%;
+		padding:20px;
 	}
 	div{
 		line-height: 30px;
@@ -26,7 +27,7 @@
 		padding-left:10px;
 		overflow:visible;
 		margin-bottom: 40px;
-		line-height: 150%;
+		line-height: 100%;
 		display:block;
 		p{
 			white-space: pre-wrap;
@@ -35,8 +36,15 @@
 			max-width: 100%;
 			padding:0;
 			margin:0;
+			line-height: 140%;
 			overflow:visible;
-
+			margin-top: 6px;
+			margin-bottom: 6px;
+			@media #{$mobile} {
+				line-height: 120%;
+				margin-top: 12px;
+				margin-bottom: 12px;
+			}
 			&.active{
 				// background:$highyellow;
 			}
@@ -49,12 +57,18 @@
 			.mark{
 				cursor:pointer;
 				position:relative;
-				height:1em;
 				vertical-align: top;
 				font-family: 'ticks';
 				color:$olive;
 				margin:0;
 				text-align: left;
+				margin-left:-20px;
+				// display:inline-block;
+				// width:20px;
+				@media #{$mobile} {
+					font-size: 1.4em;
+					margin-left:-26px;
+				}
 				&.invalid{
 					color:$red;
 				}
@@ -62,7 +76,10 @@
 
 
 			&.todo{
-	
+				margin-left:20px;
+				@media #{$mobile} {
+					margin-left:26px;
+				}
 				&[data-id~='#done'], &[data-id~='#invalid']{
 					color:#CCC !important;
 					.tag{
@@ -117,7 +134,7 @@
    animation: yellow-fade 0.5s ease-in 1;
 }
 
-#edit ::selection {
+ ::selection {
     background:$lightyellow;
     color:#032764;
 }

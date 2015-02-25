@@ -52,6 +52,15 @@ function restore(el, offset, selection) {
 }
 
 
+Object.size = function(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)){
+        	size++;
+        }
+    }
+    return size;
+};
 
 var savedSel = null;
 var savedSelActiveElement = null;
@@ -77,6 +86,16 @@ var Data = function(){
     }};
 }();
 
+function reverseForIn(obj, f) {
+	var arr = [];
+	for (var key in obj) {
+		// add hasOwnPropertyCheck if needed
+		arr.push(key);
+	}
+	for (var i=arr.length-1; i>=0; i--) {
+		f.call(obj, arr[i]);
+	}
+}
 
 // Animation Polyfill
 /* ------------------------------------------------------------ */

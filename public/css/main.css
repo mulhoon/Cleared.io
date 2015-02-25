@@ -31,9 +31,6 @@
   -webkit-transition: left 0.15s ease-in-out;
           transition: left 0.15s ease-in-out;
   left: 0; }
-  @media screen and (max-width: 480px) {
-    #sidebar {
-      display: none; } }
   #sidebar .panel {
     position: absolute;
     top: 0;
@@ -173,7 +170,8 @@
     left: 0; }
   @media screen and (max-width: 480px) {
     .page {
-      width: 100%; } }
+      width: 100%;
+      padding: 20px; } }
   .page div {
     line-height: 30px; }
   .page #edit {
@@ -186,7 +184,7 @@
     padding-left: 10px;
     overflow: visible;
     margin-bottom: 40px;
-    line-height: 150%;
+    line-height: 100%;
     display: block; }
     .page #edit p {
       white-space: pre-wrap;
@@ -195,7 +193,15 @@
       max-width: 100%;
       padding: 0;
       margin: 0;
-      overflow: visible; }
+      line-height: 140%;
+      overflow: visible;
+      margin-top: 6px;
+      margin-bottom: 6px; }
+      @media screen and (max-width: 480px) {
+        .page #edit p {
+          line-height: 120%;
+          margin-top: 12px;
+          margin-bottom: 12px; } }
       .page #edit p .highlight {
         background: rgba(255, 255, 125, 0.99);
         -webkit-border-radius: 3px;
@@ -203,24 +209,33 @@
       .page #edit p .mark {
         cursor: pointer;
         position: relative;
-        height: 1em;
         vertical-align: top;
         font-family: 'ticks';
         color: #3d9970;
         margin: 0;
-        text-align: left; }
+        text-align: left;
+        margin-left: -20px; }
+        @media screen and (max-width: 480px) {
+          .page #edit p .mark {
+            font-size: 1.4em;
+            margin-left: -26px; } }
         .page #edit p .mark.invalid {
           color: #f75e75; }
-      .page #edit p.todo[data-id~='#done'], .page #edit p.todo[data-id~='#invalid'] {
-        color: #CCC !important; }
-        .page #edit p.todo[data-id~='#done'] .tag, .page #edit p.todo[data-id~='#invalid'] .tag {
-          color: #CCC; }
-          .page #edit p.todo[data-id~='#done'] .tag[data-id='#done'], .page #edit p.todo[data-id~='#invalid'] .tag[data-id='#done'] {
-            color: #3d9970; }
-          .page #edit p.todo[data-id~='#done'] .tag[data-id='#invalid'], .page #edit p.todo[data-id~='#invalid'] .tag[data-id='#invalid'] {
-            color: #f75e75; }
-        .page #edit p.todo[data-id~='#done'] .mention, .page #edit p.todo[data-id~='#invalid'] .mention {
-          color: #CCC; }
+      .page #edit p.todo {
+        margin-left: 20px; }
+        @media screen and (max-width: 480px) {
+          .page #edit p.todo {
+            margin-left: 26px; } }
+        .page #edit p.todo[data-id~='#done'], .page #edit p.todo[data-id~='#invalid'] {
+          color: #CCC !important; }
+          .page #edit p.todo[data-id~='#done'] .tag, .page #edit p.todo[data-id~='#invalid'] .tag {
+            color: #CCC; }
+            .page #edit p.todo[data-id~='#done'] .tag[data-id='#done'], .page #edit p.todo[data-id~='#invalid'] .tag[data-id='#done'] {
+              color: #3d9970; }
+            .page #edit p.todo[data-id~='#done'] .tag[data-id='#invalid'], .page #edit p.todo[data-id~='#invalid'] .tag[data-id='#invalid'] {
+              color: #f75e75; }
+          .page #edit p.todo[data-id~='#done'] .mention, .page #edit p.todo[data-id~='#invalid'] .mention {
+            color: #CCC; }
       .page #edit p.title {
         font-family: "AvenirNextLTPro-UltLt", "Avenir Next", "Avenir", sans-serif;
         font-size: 2.5em;
@@ -249,11 +264,11 @@
   -webkit-animation: yellow-fade 0.5s ease-in 1;
           animation: yellow-fade 0.5s ease-in 1; }
 
-#edit ::-moz-selection {
+::-moz-selection {
   background: rgba(255, 255, 125, 0.99);
   color: #032764; }
 
-#edit ::selection {
+::selection {
   background: rgba(255, 255, 125, 0.99);
   color: #032764; }
 
@@ -283,6 +298,11 @@
     outline: 0; }
   #search input {
     background: transparent; }
+  @media screen and (max-width: 480px) {
+    #search {
+      display: none; }
+      #search select {
+        display: none; } }
 
 .tag, .mention {
   font-family: "AvenirNextLTPro-Medium", "Avenir Next", "Avenir", sans-serif;
@@ -329,7 +349,8 @@ body {
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
-  white-space-collapsing: discard; }
+  white-space-collapsing: discard;
+  -webkit-tap-highlight-color: transparent; }
 
 a {
   cursor: pointer;
@@ -338,6 +359,9 @@ a {
     color: inherit; }
   a:hover {
     text-decoration: none; }
+
+#signin-google {
+  cursor: pointer; }
 
 .menu {
   position: fixed;

@@ -9,6 +9,7 @@ App.view = (function () {
 	var body, 
 	selectedElement, 
 	currentKey = {keyCode:null},
+	adapter = 'storage', // 'storage' or 'cloud'
 	sidebar, 
 	newfile, 
 	files, 
@@ -83,8 +84,6 @@ App.view = (function () {
 
 	var init = function(){
 
-		App.storage.init();
-
 		body 		= $('body');
 		style 		= $('#style');
 		edit 		= $("#edit");
@@ -93,7 +92,14 @@ App.view = (function () {
 		newfile 	= $(".newfile-button");
 		settingbut 	= $(".setting-button");
 		search 		= $("#search input");
+		signin 	= $('#signin-google');
 		selectedElement = $('<div/>');
+
+		// Setup storage adapter
+		App.storage.init();
+
+		// Setup cloud adapter
+		App.cloud.init();
 
 		// Bind Actions
 		actions();
@@ -122,11 +128,30 @@ App.view = (function () {
 		    ]
 		  },
 		  active: function(){
-		  	App.storage.load();
+		  	// App.storage.load();
 		  },
 		  inactive: function(){
-		  	App.storage.load();
+		  	// App.storage.load();
 		  }
+		});
+	};
+
+	var setUser = function(user){
+		if(user){
+			$('.user').html('signed in as '+user[user.provider].displayName+' <a href="#logout">sign out</a>').show();
+			signin.hide();
+			adapter = 'cloud';
+		}else{
+			$('.user').text('').hide();
+			signin.show();
+			adapter = 'storage';
+		}
+
+		App[adapter].load(function(_files, key){
+			updateFileList(_files);
+			if(!$('#files .file.active').length){
+				$('#files .file').eq(0).trigger(event_release);
+			}
 		});
 	};
 
@@ -311,7 +336,7 @@ App.view = (function () {
 					selectedElement.html(newStr).removeClass('todo');
 					setCursor(selectedElement[0]);
 					e.preventDefault();
-					document.onmousedown();
+					document.delayFocus();
 					return;
 				}else if((isTodo && !isStart) || (isTitle && !isEnd && !isStart) || parentTags || _filtered){
 					newStr = additions;
@@ -323,7 +348,7 @@ App.view = (function () {
 					setCursor(newP[0], cursorOffest);
 					setFocus();
 					formatLine(newP);
-					document.onmousedown();
+					document.delayFocus();
 					e.preventDefault();
 					return;
 				}
@@ -340,13 +365,12 @@ App.view = (function () {
 			    }
 
 				restore(selectedElement.next()[0], 0, selection);
-				document.onmousedown();
+				document.delayFocus();
 				e.preventDefault();
 				return;
 			}
 
-
-			document.onmousedown();
+			document.delayFocus();
 
 			if (!e.metaKey || e.keyCode !== 90) {
 				return;
@@ -364,23 +388,32 @@ App.view = (function () {
 				}
 			}
 
-			// e.preventDefault();
 
 		}).on('keyup', function(){
 			currentKey = {keyCode:null};
 		});
 
-		document.onmousedown = function(){
+
+		document.delayFocus = function(){
 			requestAnimationFrame(function(){
 				setFocus();
 			});
 		};
 
-		document.onmouseup = setFocus;
+
+
+		edit.on('click', 'p', function(){
+			setFocus($(this));
+		});
+		edit.on(event_release, 'p', function(){
+			requestAnimationFrame(function(){
+				setFocus();
+			});
+		});
 
 
 		edit.on(event_down, '.mark', toggleDone);//.on(event_down, '.mark', prevent);
-		edit.on('click', 'a', openURL);
+		body.on('click', 'a', openURL);
 
 
 		var tagDelay;
@@ -388,6 +421,10 @@ App.view = (function () {
 			var value = edit.html();
 			if(!value){
 				setDefault();
+				return false;
+			}
+
+			if(opening){
 				return false;
 			}
 
@@ -409,6 +446,7 @@ App.view = (function () {
 							oldcursor:oldcursor,
 							cursor:cursor
 						});
+						App[adapter].save(getAllText());
 					}
 					oldhtml = html;
 					oldcursor = cursor;
@@ -420,17 +458,23 @@ App.view = (function () {
 		edit[0].addEventListener("copy", copy);
 		edit[0].addEventListener("paste", paste);
 
+
 		files.on(event_release, '.file', function(){
 			var index = $(this).data().id;
-			App.storage.open(index);
+			$('#files .file').removeClass('active');
+			$(this).addClass('active');
+			App[adapter].open(index, setAndParse);
 		});
 		newfile.on(event_release, function(){
-			var index = App.storage.add({});
-			App.storage.open(index);
+			App[adapter].add(function(id){
+				$('#files .file[data-id='+id+']').trigger(event_release);
+			});
 		});
 		settingbut.on(event_release, function(){
 			body.toggleClass('settings');
 		});
+
+		signin.on(event_release, App.cloud.login);
 
 		$('.close, .menu').on(event_release, function(){
 			if(body.hasClass('settings')){
@@ -445,8 +489,11 @@ App.view = (function () {
 			var index = $(this).parent().data().id;
 			var r = confirm("Are you sure you want to delete this?");
 			if(r){
-				App.storage.remove(index);
-				App.storage.open(index);
+				App[adapter].remove(index, function(){
+					$('#files .file').eq(0).trigger(event_release);
+				});
+
+				// App[adapter].open(index);
 			}
 			e.preventDefault();
 			e.stopPropagation();
@@ -484,8 +531,14 @@ App.view = (function () {
 
 	var openURL = function(e){
 		var url = $(this).attr('href');
-		window.open(url, '_blank');
+		if(url.slice(0,1)==='#'){
+			App.view[url.slice(1)]();
+		}else{
+			window.open(url, '_blank');
+		}
 		e.preventDefault();
+		e.stopPropagation();
+		return;
 	};
 
 	var runSearch = function(){
@@ -631,7 +684,8 @@ App.view = (function () {
 	var extractTags = function(){
 
 		var text = 		parseAll();
-		App.storage.save(text);
+		
+		updateFileListItem(text);
 
 		var tags = 		parseTags(text, 'tag', '#').tags;
 		var mentions = 	parseTags(text, 'mention', '@').tags;
@@ -659,7 +713,14 @@ App.view = (function () {
 		_filtered = true;
 	};
 
-	var setAndParse = function(value){
+	var setAndParse = function(file){
+		var value = file.text;
+		var currentValue = getAllText();
+		if(value===currentValue){
+			console.log('updateCancelled');
+			return;
+		}
+		
 		style.html('');
 		$('.chosen').val('').trigger("chosen:updated");
 
@@ -673,12 +734,13 @@ App.view = (function () {
 		}
 
 		opening = true;
-
 		edit.html(text);
 		edit.find('p').each(function(i, a){
 			formatLine($(a));
 		});
+
 		// edit.trigger('input');
+		selectedElement = edit.find('p').eq(0);
 
 		opening = false;
 
@@ -706,8 +768,14 @@ App.view = (function () {
 
 	/* Work out which line is currently in focus */
 
-	var setFocus = function(){
+	var setFocus = function(el){
 		edit.find('.active').removeClass('active');
+		if($(el).is('p')){
+			selectedElement = el;
+			selectedElement.addClass('active');
+			return false;
+		}
+
 		var node = window.getSelection().focusNode;
 		oldSelectedElement = selectedElement;
 
@@ -808,24 +876,36 @@ App.view = (function () {
 
 	var updateFileList = function(_files){
 		var html = '';
-		for(var i = 0 ; i < _files.length ; i++){
-			var title = $.trim(_files[i].text.split('\n')[0]);
-			html += '<div class="file" data-id="'+i+'"><span>'+(title ? title : '...')+'</span><div class="trash"></div></div>';
+		var selectedKey = App[adapter].getCurrentFileID();
+		for(var key in _files){
+			var title = trimmedTitle(_files[key].text);
+			html += '<div class="file '+(key===selectedKey ? 'active' : '')+'" data-id="'+key+'"><span>'+title+'</span><div class="trash"></div></div>';
 		}
 		files.html(html);
 	};
 
-	var updateFileListItem = function(index, text){
-		files.find('.file').eq(index).find('span').text((text ? text : '...'));
+	var updateFileListItem = function(text){
+		var title = trimmedTitle(text);
+		files.find('.file.active').find('span').text(title);
 	};
 
+	var trimmedTitle = function(value){
+		var title = $.trim(value.split('\n')[0]);
+		title = title.length > 25 ? title.substr(0,25) : title;
+		return title || '...';
+	};
 
+	var logout = function(){
+		App.cloud.logout(setUser);
+	};
 
 	return {
 		init:init,
 		setAndParse:setAndParse,
 		updateFileList:updateFileList,
 		updateFileListItem:updateFileListItem,
+		setUser:setUser,
+		logout:logout,
 		options:options
 	};
 

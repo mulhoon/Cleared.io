@@ -1,10 +1,9 @@
 App.storage = (function () {
 
-	var edit, index, _files;
+	var edit, index, _files, loadTrigger;
 	var init = function(){
 
 		edit = $('#edit');
-		index = 0;
 
 		localforage.config({
 			driver      : localforage.WEBSQL, // Force WebSQL; same as using setDriver()
@@ -14,67 +13,89 @@ App.storage = (function () {
 			storeName   : 'todolist', // Should be alphanumeric, with underscores.
 			description : 'Files stored in Cleared.io'
 		});
-		// localforage.clear();
+
 	};
 
-
-	var save = function(value){
-		_files[index].text = value || '';
-		localforage.setItem('files', _files);
-		App.view.updateFileListItem(index, $.trim(value.split('\n')[0]));
+	var clear = function(){
+		localforage.clear();	
+		loadTrigger = null;
+		index = null;
 	};
 
-	var add = function(attr){
-		attr = attr ? attr : {};
+	var save = function(value, callback){
+		console.log('saving');
+		if(value){
+			_files[index].text = value || '';
+			_files[index].date = new Date().getTime();
+		}
+		localforage.setItem('files', _files, callback);
+	};
+
+	var getCurrentFileID = function(){
+		return index;
+	};
+	var get = function(){
+		return _files;
+	};
+	var guid = function(){
+		return Math.random().toString(36).substring(7);
+	};
+
+	var add = function(callback, text, id){
 		var file = {
-			name: attr.name || 'Untitled',
-			text: attr.text || '',
-			tags:[]
+			text: text || '',
+			date: new Date().getTime()
 		};
-		_files.push(file);
-		App.view.updateFileList(_files);
-		return _files.length-1;
-	};
-
-	var remove = function(id){
-		_files.splice(id, 1);
-		App.view.updateFileList(_files);
-	};
-
-	var open = function(id){
-		if(_files[id]){
-			index = id;
-		}else{
-			index = _files.length-1;
-		}
-		if(!_files.length){
-			add();
-			open(0);
-			return;
-		}
-		$('#files .file').removeClass('active').eq(index).addClass('active');
-		App.view.setAndParse(_files[index].text);
+		var uid = id || guid();
+		_files[uid] = file;
+		save(null, function(){
+			load(function(_files){
+				loadTrigger(_files);
+				if(!id){
+					callback(uid);
+				}
+			});
+		});
 		
 	};
 
-	var load = function(){
-		localforage.getItem('files', function(err, value) { 
-			_files = value || [];
+	var remove = function(id, callback){
+		delete _files[id];
+		save(null, function(){
+			load(function(_files){
+				loadTrigger(_files);
+				if(!id){
+					callback(uid);
+				}
+			});
+		});
+	};
 
-			// value = $.trim(value);
-			if(!value){
+	var open = function(id, callback){
+		index = id;
+		callback(_files[id]);
+	};
+
+	var load = function(callback){
+		if(!loadTrigger){
+			loadTrigger = callback;
+		}
+		localforage.getItem('files', function(err, value) { 
+			_files = value || {};
+
+			if(!Object.size(_files)){
 				console.log("Loading default...");
 				$.ajax({
 					url : "default.txt",
 					dataType: "text",
 					success : function (data) {
-						add({text:data, name:'Welcome'});
-						open(0);
+						index = null;
+						add(callback, data, 'intro');
 					}
 				});
 			}else{
-				App.view.updateFileList(_files);
-				open(0);
+				console.log('loaded');
+				callback(_files);
 			}
 			
 		});
@@ -82,10 +103,13 @@ App.storage = (function () {
 
 	return {
 		init:init,
+		clear:clear,
 		save:save,
 		load:load,
+		get:get,
 		add:add,
 		remove:remove,
+		getCurrentFileID:getCurrentFileID,
 		open:open
 	};
 

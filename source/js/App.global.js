@@ -14,6 +14,7 @@ var scripts = [
 	{storage: 		"js/vendor/localforage.min.js"},
 	{switchery: 	"js/vendor/switchery.min.js"},
 	{fontloader: 	"js/vendor/webfontloader.js"},
+	{firebase: 		"https://cdn.firebase.com/js/client/2.2.0/firebase.js"},
 	{autolink: 		"js/vendor/ba-linkify.min.js"}
 ];
 

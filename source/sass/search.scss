@@ -26,4 +26,10 @@
 	input{
 		background:transparent;
 	}
+	@media #{$mobile} {
+		display:none;
+		select{
+			display:none;
+		}
+	}
 }

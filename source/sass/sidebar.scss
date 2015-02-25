@@ -11,9 +11,9 @@
 	background:#FFF;
 	padding-top:50px;
 	z-index: 2;
-	@media #{$mobile} {
-		display:none;
-	}
+	// @media #{$mobile} {
+	// 	display:none;
+	// }
 
 	.panel{
 		footer, header{

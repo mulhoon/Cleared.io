@@ -19,16 +19,21 @@ App.storage = (function () {
 	var clear = function(){
 		localforage.clear();	
 		loadTrigger = null;
+		_files = {};
 		index = null;
 	};
 
-	var save = function(value, callback){
+	var save = function(value, title, callback){
 		console.log('saving');
 		if(value){
 			_files[index].text = value || '';
+			_files[index].title = title || '';
 			_files[index].date = new Date().getTime();
 		}
-		localforage.setItem('files', _files, callback);
+		localforage.setItem('files', _files);
+		if(callback){
+			callback();
+		}
 	};
 
 	var getCurrentFileID = function(){
@@ -48,7 +53,7 @@ App.storage = (function () {
 		};
 		var uid = id || guid();
 		_files[uid] = file;
-		save(null, function(){
+		save(null, '', function(){
 			load(function(_files){
 				loadTrigger(_files);
 				if(!id){
@@ -73,6 +78,7 @@ App.storage = (function () {
 
 	var open = function(id, callback){
 		index = id;
+		console.log("open:"+id);
 		callback(_files[id]);
 	};
 
@@ -90,6 +96,7 @@ App.storage = (function () {
 					dataType: "text",
 					success : function (data) {
 						index = null;
+						console.log('loaded default');
 						add(callback, data, 'intro');
 					}
 				});

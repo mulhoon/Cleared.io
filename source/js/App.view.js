@@ -95,6 +95,8 @@ App.view = (function () {
 		signin 	= $('#signin-google');
 		selectedElement = $('<div/>');
 
+		$("#search").hide();
+
 		// Setup storage adapter
 		App.storage.init();
 
@@ -149,9 +151,16 @@ App.view = (function () {
 
 		App[adapter].load(function(_files, key){
 			updateFileList(_files);
-			if(!$('#files .file.active').length){
-				$('#files .file').eq(0).trigger(event_release);
+			// console.log(Object.size(_files));
+			if(!Object.size(_files)){
+				// setAndParse({text:''});
+				newfile.trigger(event_release);
+			}else{
+				if(!$('#files .file.active').length){
+					$('#files .file').eq(0).trigger(event_release);
+				}
 			}
+
 		});
 	};
 
@@ -206,7 +215,9 @@ App.view = (function () {
 		var tags = {};
 		var tagString = [];
 		identifierEnd = identifierEnd ? "+["+identifierEnd+"]" : "";
-		var reg = new RegExp("["+identifier+"]+[A-Za-z0-9-_]"+identifierEnd+"+","g");
+		// var reg = new RegExp("["+identifier+"]+[A-Za-z0-9-_]"+identifierEnd+"+","g");
+		var reg = new RegExp("\\B["+identifier+"]([\\w-]+)"+identifierEnd,"g");
+
 		var html = str.replace(reg, function(u) {
 			var name = u.slice(1).split('(')[0];
 			tags[name] = tags[name] || {count:0};
@@ -446,7 +457,8 @@ App.view = (function () {
 							oldcursor:oldcursor,
 							cursor:cursor
 						});
-						App[adapter].save(getAllText());
+						var txt = getAllText();
+						App[adapter].save(txt, trimmedTitle(txt));
 					}
 					oldhtml = html;
 					oldcursor = cursor;
@@ -463,6 +475,7 @@ App.view = (function () {
 			var index = $(this).data().id;
 			$('#files .file').removeClass('active');
 			$(this).addClass('active');
+			// setAndParse({text:''}, true);
 			App[adapter].open(index, setAndParse);
 		});
 		newfile.on(event_release, function(){
@@ -713,7 +726,7 @@ App.view = (function () {
 		_filtered = true;
 	};
 
-	var setAndParse = function(file){
+	var setAndParse = function(file, clear){
 		var value = file.text;
 		var currentValue = getAllText();
 		if(value===currentValue){
@@ -748,10 +761,12 @@ App.view = (function () {
 		oldcursor = save(edit[0]);
 		
 		setTimeout(function(){
-			if(isReset){
+			if(isReset && !clear){
 				setCursor();
 			}
-			extractTags();
+			if(!clear){
+				extractTags();
+			}
 		},1);
 		
 	};
@@ -876,12 +891,17 @@ App.view = (function () {
 
 	var updateFileList = function(_files){
 		var html = '';
+		var htmlArr = [];
 		var selectedKey = App[adapter].getCurrentFileID();
 		for(var key in _files){
-			var title = trimmedTitle(_files[key].text);
-			html += '<div class="file '+(key===selectedKey ? 'active' : '')+'" data-id="'+key+'"><span>'+title+'</span><div class="trash"></div></div>';
+			var title = trimmedTitle(_files[key].text || '');
+			htmlArr.push('<div class="file '+(key===selectedKey ? 'active' : '')+'" data-id="'+key+'"><span>'+title+'</span><div class="trash"></div></div>');
 		}
+		html = htmlArr.reverse().join('');
 		files.html(html);
+		// if(!files.find('.file.active').length){
+		// 	files.find('.file').eq(0).trigger(event_release);
+		// }
 	};
 
 	var updateFileListItem = function(text){
@@ -905,6 +925,7 @@ App.view = (function () {
 		updateFileList:updateFileList,
 		updateFileListItem:updateFileListItem,
 		setUser:setUser,
+		trimmedTitle:trimmedTitle,
 		logout:logout,
 		options:options
 	};

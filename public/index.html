@@ -4,7 +4,13 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <title>Cleared</title>
         <meta name="description" content="The notepad with superpowers.">
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"> -->
+
+        <meta name="viewport" content="user-scalable=no, width=device-width, height=device-height, initial-scale=1, maximum-scale=1, minimum-scale=1, target-densitydpi=device-dpi" />
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="format-detection" content="telephone=no" />
+
         <script src="js/vendor/head.load.min.js"></script>
         <script src="js/app.js"></script>
         <link rel="stylesheet" href="css/main.css">
@@ -19,10 +25,10 @@
         <link rel="apple-touch-icon" sizes="144x144" href="img/favicon/apple-touch-icon-144x144.png">
         <link rel="apple-touch-icon" sizes="152x152" href="img/favicon/apple-touch-icon-152x152.png">
         <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon-180x180.png">
-        <link rel="icon" type="image/png" href="img/favicon/favicon-32x32.png" sizes="32x32">
-        <link rel="icon" type="image/png" href="img/favicon/android-chrome-192x192.png" sizes="192x192">
-        <link rel="icon" type="image/png" href="img/favicon/favicon-96x96.png" sizes="96x96">
-        <link rel="icon" type="image/png" href="img/favicon/favicon-16x16.png" sizes="16x16">
+        <link rel="icon" type="image/png" href="img/favicon/favicon-32x32.png?2" sizes="32x32">
+        <link rel="icon" type="image/png" href="img/favicon/android-chrome-192x192.png?2" sizes="192x192">
+        <link rel="icon" type="image/png" href="img/favicon/favicon-96x96.png?2" sizes="96x96">
+        <link rel="icon" type="image/png" href="img/favicon/favicon-16x16.png?2" sizes="16x16">
         <link rel="manifest" href="img/favicon/manifest.json">
         <meta name="msapplication-TileColor" content="#da532c">
         <meta name="msapplication-TileImage" content="img/favicon/mstile-144x144.png">
@@ -37,16 +43,27 @@
         <div id="sidebar">
             <div class='panel'>
                 <header>
+                    <div class="close cross" onclick=""></div>
                     <div class='newfile-button'></div>
                     <div class='setting-button'></div>
                     
                     <!-- <div class="close"></div> -->
 
                 </header>
-                <div id="files"></div>
+
+                    <files></files>
+                    <script type="riot/tag">
+                        <files>
+                            <div class="file { active: active } { shared:Object.size(users)>1 }" data-id={ key } each={ App.view.items } onclick={ App.view.open } >
+                                <span>{ App.view.trimmedTitle(text) }</span>
+                                <div if={active} class="info" onclick={ App.view.info }></div>
+                            </div>
+                        </files>
+                    </script>
+
                 <footer>
-                <img id="signin-google" src="img/signin-google.png" width="100px"/>
-                <div class='user'></div>
+                    <img id="signin-google" src="img/signin-google.png"/>
+                    <div class='user'></div>
                 </footer>
             </div>
             <div class='panel settings'>
@@ -60,11 +77,49 @@
                     <a href="http://www.nicmulvaney.com">Nic</a> &copy; 2015
                 </footer>
             </div>
+             <div class='panel info'>
+                    <header>
+                        <div class="close"></div>
+                        <div class='title'>Info</div>
+                    </header>
+                    <info></info>
+                    <script type="riot/tag">
+                        <info>
+                            <div class='middle'>
+                                <div if={App.view.currentItem}>
+                                    <span class='title'>{ App.view.trimmedTitle(App.view.currentItem.text) }</span><br/>
+                                    <div class='details'>
+                                    <b>Updated:</b> { moment(App.view.currentItem.date).fromNow() }<br/>
+                                    <b>Words:</b> { App.view.currentItem.text.split(" ").length }<br/>
+                                    <b>Complete:</b> 50%
+                                    </div>
+                                    <div if={App.view.currentItem.sharers} class="sharing">
+                                        <h2>Sharing:</h2>
+                                        <div id="friendsearch"><input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="-1" class="typeahead" placeholder="Share with..."/></div>
+                                        <div class="face" each={App.view.currentItem.sharers}>
+                                            <img if={picture} src="{ picture }?sz=60"/> 
+                                            <img if={!picture} src="img/default_user.jpg"/>
+                                            {firstname||"Unknown"} {lastname}<br/>
+                                            <span class='tag mention'>@{username}</span>
+                                            <div class='remove' onclick={App.view.removeSharer}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class='delete' onclick={App.view.remove}>Delete</div>
+                            </div>
+                        </info>
+                    </script>
+             </div>
         </div>
         <section class="page">
-            <section id="edit" contenteditable="true" spellcheck="true" ><p><br/></p></section>
+            <section id="edit" class="needsclick" contenteditable="true" spellcheck="false" ><p><br/></p></section>
+            <!-- <sharedsmall></sharedsmall> -->
+            <!--<script src="sharedsmall.tag" type="riot/tag"></script> -->
         </section>
+        <div class="cover"></div>
         <div class="menu"></div>
+
+
 
         <script>
           (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

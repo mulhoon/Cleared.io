@@ -31,6 +31,8 @@ var checkDevice = function(){
 	}
 };
 
+click = "click";
+
 // Cursor positions
 
 function save(el, offset) {
@@ -51,6 +53,23 @@ function restore(el, offset, selection) {
     rangy.getSelection().restoreCharacterRanges(el, savedSel);
 }
 
+function guid(len){
+	len = len ? len : 2;
+	return Math.random().toString(36).substring(len);
+}
+
+
+function getByID(arr, id){
+	var elementPos = arr.map(function(e){
+		return e.key; 
+	}).indexOf(id);
+	return elementPos;
+}
+
+var touch = function(e){
+	e = e.originalEvent.touches ? e.originalEvent.touches[0] : e;
+	return {x:e.pageX, y:e.pageY};
+};
 
 Object.size = function(obj) {
     var size = 0, key;

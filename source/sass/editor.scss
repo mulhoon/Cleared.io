@@ -1,54 +1,98 @@
 .page{
-	// margin: 0 auto;
-	// width:60%;
-	padding-top:40px;
+	// background:#FFF;
 	display:block;
 	position:absolute;
-	transition: left 0.15s ease-in-out;
-	left:250px;
-	right:0px;
+	transition: all 0.2s ease-in-out;
 	top:0px;
-	body.hideMenu &{
-		left:0;
+	left:0;
+	right:0;
+	// 
+	// overflow:hidden;
+	// overflow-y: scroll; // has to be scroll, not auto
+	// -webkit-overflow-scrolling: touch;
+	body.moving &{
+		transition-duration: 0s;
 	}
 
 	@media #{$mobile} {
-		width:100%;
-		padding:20px;
+		bottom: 0px;
+		transform: translate3d(0, 0, 0);
+		body.keyboard &{
+			// position:relative;
+			// overflow:hidden;
+			// -webkit-overflow-scrolling: auto;
+		}
 	}
+
+	body.showMenu &{
+		left:250px;
+		@media #{$mobile} {
+			transform: translate3d(75%, 0, 0);
+			left:0;
+		}
+		// -webkit-filter: blur(3px);
+	}
+
 	div{
 		line-height: 30px;
 	}
 	#edit{
-		width:780px;
+
+		
 		margin: 0 auto;
 		position:relative;
 		outline:0;
-		// margin:0;
 		padding:0;
 		-webkit-user-select:text;
-		min-height:100%;
-		padding-left:10px;
+		min-height:calc(100% - 39px);
+
 		overflow:visible;
-		margin-bottom: 40px;
+		margin-bottom: 20px;
 		line-height: 100%;
 		display:block;
+		
+		width: 780px;
+		padding-left:10px;
+		padding-right:10px;
+		margin-top:40px;
+
+		body.editing & {
+			min-height:inherit;
+		}
+		@media #{$mobile} {
+			font-family: $medium;
+			width:100%;
+			padding-left:20px;
+			padding-right:20px;
+			margin-top:20px;
+			padding-bottom: 40px;
+			font-size: 0.85em;
+		}
+
+		&.empty:before {
+			font-family: $medium;
+			z-index: -1;
+		    color: #CCC;
+		    display:block;
+		    position:absolute;
+		    content:'Type here...';
+		    top:4px;
+		    left:10px;
+		    @media #{$mobile} {
+		    	left:20px;
+		    	top:3px;
+		    }
+		}
 		p{
 			white-space: pre-wrap;
 			word-wrap: initial;
 			position: relative;
-			max-width: 100%;
 			padding:0;
 			margin:0;
 			line-height: 140%;
 			overflow:visible;
-			margin-top: 6px;
-			margin-bottom: 6px;
-			@media #{$mobile} {
-				line-height: 120%;
-				margin-top: 12px;
-				margin-bottom: 12px;
-			}
+
+
 			&.active{
 				// background:$highyellow;
 			}
@@ -66,30 +110,26 @@
 				color:$olive;
 				margin:0;
 				text-align: left;
-				margin-left:-20px;
-				// display:inline-block;
-				// width:20px;
+
 				@media #{$mobile} {
 					font-size: 1.4em;
-					margin-left:-26px;
+					margin-left:-20px;
+					padding-left:20px;
 				}
 				&.invalid{
 					color:$red;
 				}
+
 			}
 
 
 			&.todo{
-				margin-left:20px;
-				@media #{$mobile} {
-					margin-left:26px;
-				}
 				&[data-id~='#done'], &[data-id~='#invalid']{
 					color:#CCC !important;
 					.tag{
 						color:#CCC;
 						&[data-id='#done']{
-							color: $olive;
+							color: rgba($olive, 1);
 						}
 						&[data-id='#invalid']{
 							color: $red;
@@ -98,16 +138,40 @@
 					.mention{
 						color:#CCC;
 					}
+					.mark{
+						color:#CCC;
+					}
+				}
+				@media #{$mobile} {
+					// background:#EEE;
+					// border-bottom: 1px dotted #999;
+					padding-bottom: 3px;
+					padding-top: 3px;
+					// margin-left: -20px;
+					// margin-right: -20px;
+					// padding-left: 20px;
+					// padding-right: 20px;
+					// margin-bottom: 1px;
 				}
 			}
 			&.title{
 				font-family: $light;
 				font-size: 2.5em;
 				padding-bottom: 20px;
-				padding-top: 20px;
+				// padding-top: 20px;
 				margin:0;
 				position:relative;
 				line-height: 1em;
+
+				@media #{$mobile} {
+					font-size: 1.5em;
+					font-family: $regular;
+					border-bottom: 1px solid #CCC;
+					// padding-bottom: 15px;
+					margin-bottom: 10px;
+				}
+
+
 				// &:hover:after{
 				// 	position:absolute;
 				// 	content:'10%';
@@ -125,6 +189,9 @@
 					color:$fontcolor !important;
 				}
 			}
+		}
+		p + p.title{
+			padding-top: 20px;
 		}
 	}
 }

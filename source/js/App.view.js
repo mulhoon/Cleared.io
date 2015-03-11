@@ -6,11 +6,13 @@
 
 App.view = (function () {
 
-	var body, 
+	var html, body, 
 	selectedElement, 
 	currentKey = {keyCode:null},
 	adapter = 'storage', // 'storage' or 'cloud'
 	sidebar, 
+	pullpanels,
+	page,
 	newfile, 
 	files, 
 	style, 
@@ -18,6 +20,8 @@ App.view = (function () {
 	undoManager, 
 	oldhtml, 
 	oldcursor, 
+	opening,
+	_display,
 	_filtered,
 	_filter;
 
@@ -25,7 +29,7 @@ App.view = (function () {
 
 	var options = {
 		saveDelay:{
-			value:500
+			value:300
 		},
 		appendDate:{
 			value: true,
@@ -35,7 +39,7 @@ App.view = (function () {
 		spellcheck:{
 			value: true,
 			name: "Spell check",
-			visible: true,
+			visible: false,
 			func: function(value){
 				edit[0].spellcheck = value;
 				edit[0].focus();
@@ -84,18 +88,28 @@ App.view = (function () {
 
 	var init = function(){
 
+		html 		= $('html');
 		body 		= $('body');
 		style 		= $('#style');
 		edit 		= $("#edit");
 		sidebar 	= $("#sidebar");
+		page 		= $(".page");
 		files 		= $("#files");
 		newfile 	= $(".newfile-button");
 		settingbut 	= $(".setting-button");
 		search 		= $("#search input");
 		signin 	= $('#signin-google');
 		selectedElement = $('<div/>');
+		pullpanels = $("#sidebar, .page");
 
-		$("#search").hide();
+		_display = {
+				w:window.innerWidth,
+				h:window.innerHeight
+		};
+
+		riotMenu();
+		
+		// $("#search").hide();
 
 		// Setup storage adapter
 		App.storage.init();
@@ -120,23 +134,64 @@ App.view = (function () {
 
 		// Load files from storage when fonts are ready
 
-		WebFont.load({
-		  custom: {
-		    families: [
-			    'AvenirNextLTPro-Medium', 
-			    'AvenirNextLTPro-Regular', 
-			    'AvenirNextLTPro-UltLt'
-			    // 'ticks'
-		    ]
-		  },
-		  active: function(){
-		  	// App.storage.load();
-		  },
-		  inactive: function(){
-		  	// App.storage.load();
-		  }
-		});
+		// WebFont.load({
+		//   custom: {
+		//     families: [
+		// 	    'AvenirNextLTPro-Medium', 
+		// 	    'AvenirNextLTPro-Regular', 
+		// 	    'AvenirNextLTPro-UltLt'
+		// 	    // 'ticks'
+		//     ]
+		//   },
+		//   active: function(){
+		//   	// App.storage.load();
+		//   },
+		//   inactive: function(){
+		//   	// App.storage.load();
+		//   }
+		// });
+
+		// Remove mobile delay
+		FastClick.attach(document.body);
+
+		typed();
 	};
+
+	var typed = function(){
+		$('.typeahead').textcomplete([{
+		    match: /(^|\s)@(\w{2,})$/,
+		    search: function (term, callback) {
+		    	console.log(term);
+		        callback($.map(friends, function (e) {
+		            return e.username.indexOf(term) === 0 ? e.username: null;
+		        }));
+		    },
+		    replace: function (word) {
+		        return word + ' ';
+		    }
+		}], {
+			// placement: 'bottom|absleft'
+		}).on({
+        'textComplete:select': function (e, value, strategy) {
+	 		var elementPos = friends.map(function(e){
+				return e.username; 
+			}).indexOf(value);
+			var friend = friends[elementPos];
+			App[adapter].addSharer(friend);
+        }
+    	}
+        ).on('focus', function(){
+   			$(this).val('@');
+   		}).on('blur', function(){
+   			$(this).val('');
+   			// window.scrollTo(0,0);
+   		});
+	};
+
+	var removeSharer = function(e){
+		App[adapter].removeSharer(e.item);
+	};
+
 
 	var setUser = function(user){
 		if(user){
@@ -149,19 +204,7 @@ App.view = (function () {
 			adapter = 'storage';
 		}
 
-		App[adapter].load(function(_files, key){
-			updateFileList(_files);
-			// console.log(Object.size(_files));
-			if(!Object.size(_files)){
-				// setAndParse({text:''});
-				newfile.trigger(event_release);
-			}else{
-				if(!$('#files .file.active').length){
-					$('#files .file').eq(0).trigger(event_release);
-				}
-			}
-
-		});
+		App[adapter].load();
 	};
 
 	var settings = function(){
@@ -285,124 +328,7 @@ App.view = (function () {
 	var actions = function(){
 
 		// Essential to focus
-		$(window).on('keydown', function(e){
-			currentKey = {
-				keyCode: e.keyCode,
-				altKey: e.altKey,
-				ctrlKey: e.ctrlKey,
-				metaKey: e.metaKey,
-				shiftKey: e.shiftKey
-			};
-			if(currentKey.metaKey){
-				if(shortcuts[currentKey.keyCode]){
-					shortcuts[currentKey.keyCode]();
-					e.preventDefault();
-					return;
-				}
-			}
-
-			var selection, start, end;
-
-			// If return is pressed, let's do some magic...
-
-			if(e.keyCode === 13) {
-				selection = save(selectedElement[0])[0].characterRange;
-				start = selection.start;
-				end = selection.end;
-				var text = selectedElement.text();
-				var pos = text.length;
-				var newStr = text.substr(end, pos-end);
-				var oldStr = text.substr(0, start);
-				var cursorOffest = 0;
-				var isTodo = selectedElement.hasClass('todo');
-				var isTitle = selectedElement.hasClass('title');
-				var isEnd = end===pos;
-				var isStart = start===0;
-				var additions = newStr;
-
-
-				if(isTodo && !parseTodo(newStr).todo){
-					additions = '- '+additions;
-					cursorOffest = 2;
-				}
-
-				if(!text || isTodo || (isTitle && !isEnd)){
-					selectedElement.attr('class', '').removeAttr('data-id data-children');
-				}
-
-				var parentTitle = isTitle ? selectedElement : selectedElement.prevAll('.title').eq(0);
-				var parentTags = $.trim(parentTitle.attr('data-id'));
-
-				if(parentTags){
-					additions += ' '+parentTags;
-				}
-
-				if(_filtered){
-					additions += " "+_filter;
-				}
-
-
-				if($.trim(oldStr)===_checkbox[0]){
-					newStr = !newStr ? '<br/>' : newStr;
-					selectedElement.html(newStr).removeClass('todo');
-					setCursor(selectedElement[0]);
-					e.preventDefault();
-					document.delayFocus();
-					return;
-				}else if((isTodo && !isStart) || (isTitle && !isEnd && !isStart) || parentTags || _filtered){
-					newStr = additions;
-					newStr = !newStr ? '<br/>' : newStr;
-					selectedElement.text(oldStr);
-					formatLine();
-					var newP = $('<p>'+newStr+'</p>');
-					newP.insertAfter(selectedElement);
-					setCursor(newP[0], cursorOffest);
-					setFocus();
-					formatLine(newP);
-					document.delayFocus();
-					e.preventDefault();
-					return;
-				}
-			}
-
-			if(e.keyCode === 40){ // Down arrow
-				selection = save(selectedElement[0]);
-
-				// Fix selection overflow
-				var len = selectedElement.next().text().length;
-			    if(selection[0].characterRange.start > len){
-			    	selection[0].characterRange.start = len;
-			    	selection[0].characterRange.end = len;
-			    }
-
-				restore(selectedElement.next()[0], 0, selection);
-				document.delayFocus();
-				e.preventDefault();
-				return;
-			}
-
-			document.delayFocus();
-
-			if (!e.metaKey || e.keyCode !== 90) {
-				return;
-			}
-
-			if (e.shiftKey && e.metaKey && e.keyCode===90) {
-				// Detect Redo
-				if(undoManager.hasRedo()){
-					undoManager.redo();
-				}
-			}else if(e.metaKey && e.keyCode===90) {
-				// Detect Undo
-				if(undoManager.hasUndo()){
-					undoManager.undo();
-				}
-			}
-
-
-		}).on('keyup', function(){
-			currentKey = {keyCode:null};
-		});
+		// bindEditKeyActions()
 
 
 		document.delayFocus = function(){
@@ -411,28 +337,45 @@ App.view = (function () {
 			});
 		};
 
-
-
-		edit.on('click', 'p', function(){
-			setFocus($(this));
+		var mc = new Hammer(body[0], {
+			velocity:0.9
 		});
-		edit.on(event_release, 'p', function(){
+		mc.on('swiperight', function(ev) {
+		   	body.addClass('showMenu');
+		}).on('swipeleft', function(ev) {
+		   	body.removeClass('showMenu');
+		});
+
+		edit.on(click, 'p', function(){
+			setFocus($(this));
+			// $(this).focus();
+		});
+		// edit.on(event_down, 'p', function(){
+		// 	edit.focus();
+		// });
+
+		edit.on(event_release, 'p', function(e){
 			requestAnimationFrame(function(){
 				setFocus();
 			});
+			// e.preventDefault();
+			// e.stopPropagation();
 		});
 
 
-		edit.on(event_down, '.mark', toggleDone);//.on(event_down, '.mark', prevent);
-		body.on('click', 'a', openURL);
+		edit.on(event_release, '.mark', toggleDone).on(event_down, '.mark', prevent);
+		body.on(click, 'a', openURL);
 
 
 		var tagDelay;
 		edit.on('input', function(e){
-			var value = edit.html();
+			var value = edit.text();
 			if(!value){
 				setDefault();
+				saveFile();
 				return false;
+			}else{
+				edit.removeClass('empty');
 			}
 
 			if(opening){
@@ -444,74 +387,336 @@ App.view = (function () {
 				formatLine();
 			}
 
-			// To be improved....
-			clearTimeout(saveTimer);
-			saveTimer = setTimeout(function() {
-					extractTags();
-					var html = edit.html();
-					var cursor = save(edit[0]);
-					if(html!==oldhtml){
-						addUndo({
-							oldhtml:oldhtml,
-							html:html,
-							oldcursor:oldcursor,
-							cursor:cursor
-						});
-						var txt = getAllText();
-						App[adapter].save(txt, trimmedTitle(txt));
-					}
-					oldhtml = html;
-					oldcursor = cursor;
-			}, options.saveDelay.value);
+			saveFile();
 		}).on(event_down, function(){
-			body.addClass('hideMenu').removeClass('settings');
+			console.log("down");
+			// body.addClass('hideMenu').removeClass('settings info');
+		}).on('focus', function(){
+			bindEditKeyActions(true);
+			if(App.view.currentItem.key==='new'){
+				window.scrollTo(0,0);
+			}
+		}).on('blur', function(){
+			bindEditKeyActions(false);
 		});
 		
+		// iNoBounce.disable();
+
 		edit[0].addEventListener("copy", copy);
 		edit[0].addEventListener("paste", paste);
 
 
-		files.on(event_release, '.file', function(){
-			var index = $(this).data().id;
-			$('#files .file').removeClass('active');
-			$(this).addClass('active');
-			// setAndParse({text:''}, true);
-			App[adapter].open(index, setAndParse);
+		newfile.on(click, function(){
+			var newObj = {text:"", active:true, key:"new"};
+			App.view.items.unshift(newObj);
+			open({item:newObj});
 		});
-		newfile.on(event_release, function(){
-			App[adapter].add(function(id){
-				$('#files .file[data-id='+id+']').trigger(event_release);
-			});
-		});
-		settingbut.on(event_release, function(){
+
+		settingbut.on(click, function(){
 			body.toggleClass('settings');
 		});
 
-		signin.on(event_release, App.cloud.login);
+		signin.on(click, App.cloud.login);
 
-		$('.close, .menu').on(event_release, function(){
-			if(body.hasClass('settings')){
-				body.removeClass('settings');
+		$('.close, .menu').on(click, function(){
+			if(body.hasClass('settings') || body.hasClass('info')){
+				body.removeClass('settings info');
 			}else{
-				body.toggleClass('hideMenu');
+				body.toggleClass('showMenu');
 			}
+		});
+
+		$('.cover').on(event_down, function(){
+			body.removeClass('settings info showMenu');
+		});
+
+		// URL ROUTING
+		// riot.route(function(id) {
+		// 	console.log(id);
+		// 	open(id);
+		// });
+
+
+		// body.on(event_down, function(e){
+		// 	var start = touch(e).x;
+		// 	var dir = 0;
+		// 	var moved = 0;
+		// 	var x = 0;
+		// 	var oldX = 0;
+		// 	var enabled = false;
+		// 	// if(!body.hasClass('showMenu')){
+		// 		body.on(event_move, function(e){
+		// 			x = touch(e).x;
+		// 			moved = x-start;
+		// 			dir = x>oldX ? 1 : -1;
+					
+		// 			if(moved > 80 && !enabled){
+		// 				// iNoBounce.enable();
+		// 				enabled = true;
+		// 				body.addClass('showMenu');
+		// 				body.off(event_move).off(event_release);
+		// 			}else if(moved < -80 && !enabled){
+		// 				body.removeClass('showMenu');
+		// 				enabled = true;
+		// 				body.off(event_move).off(event_release);
+		// 				// iNoBounce.disable();
+		// 			}
+		// 			// if(enabled){
+		// 			// 	pullMenu(moved);
+		// 			// }
+		// 			oldX = x;
+		// 		});
+		// 		// body.on(event_release, function(){
+		// 		// 	iNoBounce.disable();
+		// 		// 	body.off(event_move).off(event_release);
+		// 		// 	// endPullMenu(x, dir);
+		// 		// });
+		// 	// }
+		// });
+
+		// files.on(event_release, '.trash', function(e){
+		// 	var index = $(this).parent().data().id;
+		// 	var r = confirm("Are you sure you want to delete this?");
+		// 	if(r){
+		// 		App[adapter].remove(index, function(){
+		// 			// $('#files .file').eq(0).trigger(event_release);
+		// 		});
+
+		// 		// App[adapter].open(index);
+		// 	}
+		// 	e.preventDefault();
+		// 	e.stopPropagation();
+
+		// });
+	};
+
+	var limit = function(value, min, max){
+		return Math.min(Math.max(value, min), max);
+	};
+
+
+	var pullMenu = function(x){
+		// console.log(y);
+		body.addClass("moving");
+		pullpanels.attr("style", "");
+
+		var pc = (x/_display.w);
+
+		var xlimit1 = limit(-100 + (100*pc), -100, 0);// limit(pc, -100, 0);
+		var xlimit2 = limit(75*pc, 0, 75);
+
+		// window.scrollTo(0,0);
+		// console.log( xlimit1 );
+		sidebar.css({"-webkit-transform":"translate3d("+xlimit1+"%, 0, 0)"});
+
+		// var z = limit((-100+(y/5)), -100, 0);
+		page.css({"-webkit-transform":"translate3d("+xlimit2+"%, 0, 0)"});
+
+		// var a = limit((1-(y/_display.h)), 0, 1);
+		// cover.css({"background-color":"rgba(51,51,51,"+a+")"});
+	};
+
+
+	var endPullMenu = function(x, direction){
+	
+		var speed = Math.floor(300 * (x) / _display.w) + 'ms';
+
+		$([sidebar, page]).each(function() {
+			$(this).attr("style", "").css({
+				"-webkit-transition-duration":speed,
+				"-webkit-transition-timing-function": "ease-out"
+			}).bind(transition, function(){
+				$(this).removeAttr("style");
+				$(this).unbind(transition);
+			});
+		});
+
+		body.removeClass("moving");
+		if(x<100 || direction===-1){ // Threshold
+			return false;
+		}
+		// cover.attr("style","");
+		body.addClass('showMenu');
+	};
+
+
+	//var keyboardTimer; 
+	var bindEditKeyActions = function(value){
+		var wtop;
+		if(value){
+			$(window).on('keydown', editKeyActions).on('keyup', function(){
+				currentKey = {keyCode:null};
+			});
 			
-		});
 
-		files.on(event_release, '.trash', function(e){
-			var index = $(this).parent().data().id;
-			var r = confirm("Are you sure you want to delete this?");
-			if(r){
-				App[adapter].remove(index, function(){
-					$('#files .file').eq(0).trigger(event_release);
-				});
+			// Complicated stuff for mobile
+			body.addClass('editing');
+			// keyboardTimer = setTimeout(function(){
+			// 	if(body.hasClass('editing')){
+			// 		var top = $(".page").scrollTop();
+			// 		wtop = $(window).scrollTop();
+			// 		body.addClass('keyboard');
+			// 		$('.page').scrollTop(0);
+			// 		window.scrollTo(0, wtop+top);
+			// 	}
+			// }, 600);
+		}else{
+			// clearTimeout(keyboardTimer);
+			$(window).off('keydown').off('keyup');
+			// wtop = $(window).scrollTop();
+			// body.removeClass('editing keyboard');
+			// $('.page').scrollTop(wtop);
+			// window.scrollTo(0, 0);
 
-				// App[adapter].open(index);
+		}
+	};
+
+	var editKeyActions = function(e){
+		currentKey = {
+			keyCode: e.keyCode,
+			altKey: e.altKey,
+			ctrlKey: e.ctrlKey,
+			metaKey: e.metaKey,
+			shiftKey: e.shiftKey
+		};
+		if(currentKey.metaKey){
+			if(shortcuts[currentKey.keyCode]){
+				shortcuts[currentKey.keyCode]();
+				e.preventDefault();
+				return;
 			}
-			e.preventDefault();
-			e.stopPropagation();
+		}
 
-		});
+		var selection, start, end;
+
+		// If return is pressed, let's do some magic...
+
+		if(e.keyCode === 13) {
+			selection = save(selectedElement[0])[0].characterRange;
+			start = selection.start;
+			end = selection.end;
+			var text = selectedElement.text();
+			var pos = text.length;
+			var newStr = text.substr(end, pos-end);
+			var oldStr = text.substr(0, start);
+			var cursorOffest = 0;
+			var isTodo = selectedElement.hasClass('todo');
+			var isTitle = selectedElement.hasClass('title');
+			var isEnd = end===pos;
+			var isStart = start===0;
+			var additions = newStr;
+
+
+			if(isTodo && !parseTodo(newStr).todo){
+				additions = '- '+additions;
+				cursorOffest = 2;
+			}
+
+			if(!text || isTodo || (isTitle && !isEnd)){
+				selectedElement.attr('class', '').removeAttr('data-id data-children');
+			}
+
+			var parentTitle = isTitle ? selectedElement : selectedElement.prevAll('.title').eq(0);
+			var parentTags = $.trim(parentTitle.attr('data-id'));
+
+			if(parentTags){
+				additions += ' '+parentTags;
+			}
+
+			if(_filtered){
+				additions += " "+_filter;
+			}
+
+
+			if($.trim(oldStr)===_checkbox[0]){
+				newStr = !newStr ? '<br/>' : newStr;
+				selectedElement.html(newStr).removeClass('todo');
+				setCursor(selectedElement[0]);
+				e.preventDefault();
+				saveFile(true);
+				document.delayFocus();
+				return;
+			}else if((isTodo && !isStart) || (isTitle && !isEnd && !isStart) || parentTags || _filtered){
+				newStr = additions;
+				newStr = !newStr ? '<br/>' : newStr;
+				selectedElement.text(oldStr);
+				formatLine();
+				var newP = $('<p>'+newStr+'</p>');
+				newP.insertAfter(selectedElement);
+				setCursor(newP[0], cursorOffest);
+				setFocus();
+				formatLine(newP);
+				saveFile(true);
+				document.delayFocus();
+				e.preventDefault();
+				return;
+			}
+
+		}
+
+		if(e.keyCode === 40){ // Down arrow
+			selection = save(selectedElement[0]);
+
+			// Fix selection overflow
+			var len = selectedElement.next().text().length;
+		    if(selection[0].characterRange.start > len){
+		    	selection[0].characterRange.start = len;
+		    	selection[0].characterRange.end = len;
+		    }
+
+			restore(selectedElement.next()[0], 0, selection);
+			document.delayFocus();
+			e.preventDefault();
+			return;
+		}
+
+		document.delayFocus();
+
+		if (!e.metaKey || e.keyCode !== 90) {
+			return;
+		}
+
+		if (e.shiftKey && e.metaKey && e.keyCode===90) {
+			// Detect Redo
+			if(undoManager.hasRedo()){
+				undoManager.redo();
+			}
+		}else if(e.metaKey && e.keyCode===90) {
+			// Detect Undo
+			if(undoManager.hasUndo()){
+				undoManager.undo();
+			}
+		}
+	};
+
+	var saveFile = function(instant){
+		// To be improved....
+		clearTimeout(saveTimer);
+		saveTimer = setTimeout(function() {
+				extractTags();
+				var html = edit.html();
+				var cursor = save(edit[0]);
+				if(html!==oldhtml){
+					addUndo({
+						oldhtml:oldhtml,
+						html:html,
+						oldcursor:oldcursor,
+						cursor:cursor
+					});
+					var txt = getAllText();
+					App[adapter].save(txt);
+					App.storage.store('localcopy', txt);
+				}
+				oldhtml = html;
+				oldcursor = cursor;
+		}, instant ? 0 : options.saveDelay.value);
+	};
+
+	var showInfo = function(){
+		body.addClass('info');
+	};
+	var hideInfo = function(){
+		body.removeClass('info');
 	};
 
 	var copy = function(e){
@@ -629,7 +834,14 @@ App.view = (function () {
 
 
 	var getAllText = function(){
-		return edit[0].innerText;
+		// return edit[0].innerText;
+		var text = [];
+		var nodes = edit.find('p');
+		nodes.each(function(i, a){
+			var node = $(a);
+			text.push($.trim(node.text())+'\n');
+		});
+		return  text.join('');
 	};
 
 	var parseAll = function(){
@@ -698,7 +910,7 @@ App.view = (function () {
 
 		var text = 		parseAll();
 		
-		updateFileListItem(text);
+		// updateFileListItem(text);
 
 		var tags = 		parseTags(text, 'tag', '#').tags;
 		var mentions = 	parseTags(text, 'mention', '@').tags;
@@ -726,8 +938,15 @@ App.view = (function () {
 		_filtered = true;
 	};
 
-	var setAndParse = function(file, clear){
-		var value = file.text;
+	var setAndParse = function(file, clear, restoreCursor){
+
+		if(!file){
+			return false;
+		}
+
+		var value = $.trim(file.text);
+
+
 		var currentValue = getAllText();
 		if(value===currentValue){
 			console.log('updateCancelled');
@@ -735,40 +954,71 @@ App.view = (function () {
 		}
 		
 		style.html('');
-		$('.chosen').val('').trigger("chosen:updated");
 
 		var text, isReset;
+
+		edit.removeClass('empty');
+
+		_filter = '';
+		$('.chosen').val('').trigger('chosen:updated');
+
 		if(!value){
 			text = _default;
 			isReset = true;
+			edit.addClass('empty');
 		}else{
 			text = p(value);
 			isReset = false;
 		}
 
 		opening = true;
+		if(restoreCursor){
+			save(edit[0]);
+		}
 		edit.html(text);
 		edit.find('p').each(function(i, a){
 			formatLine($(a));
 		});
-
+		if(restoreCursor){
+			restore(edit[0]);
+		}
 		// edit.trigger('input');
 		selectedElement = edit.find('p').eq(0);
 
 		opening = false;
 
 		oldhtml = edit.html();
-		oldcursor = save(edit[0]);
+		if(isReset){
+			oldcursor = save(edit[0]);
+			
+		}
 		
 		setTimeout(function(){
-			if(isReset && !clear){
-				setCursor();
+			if(isReset && !clear && !restoreCursor){
+				console.log(device.mobile());
+				if(file.key==='new'){
+					
+					if(device.mobile()){
+						body.removeClass('showMenu');
+						setTimeout(function(){
+							setCursor();
+							
+						}, 300);
+					}else{
+						window.scrollTo(0, 0);
+						setCursor();
+					}
+				}
+				
 			}
 			if(!clear){
 				extractTags();
 			}
+
 		},1);
-		
+		if(file.key!=='new'){
+			App.storage.store('localcopy', value);
+		}
 	};
 
 	var setCursor = function(el, pos){
@@ -878,39 +1128,97 @@ App.view = (function () {
 
 		formatLine(newP);
 		setFocus();
-		extractTags();
+
+		saveFile(true);
+		// extractTags();
 	};
 
 
 
 	var setDefault = function(){
 		edit.html(_default);
+		edit.addClass('empty');
 		setCursor();
 	};
 
 
-	var updateFileList = function(_files){
-		var html = '';
-		var htmlArr = [];
-		var selectedKey = App[adapter].getCurrentFileID();
-		for(var key in _files){
-			var title = trimmedTitle(_files[key].text || '');
-			htmlArr.push('<div class="file '+(key===selectedKey ? 'active' : '')+'" data-id="'+key+'"><span>'+title+'</span><div class="trash"></div></div>');
-		}
-		html = htmlArr.reverse().join('');
-		files.html(html);
-		// if(!files.find('.file.active').length){
-		// 	files.find('.file').eq(0).trigger(event_release);
-		// }
+	var riotMenu = function(){
+		riot.mount('files');
+	    riot.mount('shared');
+	    riot.mount('info');
+	    riot.mount('sharedsmall');
 	};
 
-	var updateFileListItem = function(text){
-		var title = trimmedTitle(text);
-		files.find('.file.active').find('span').text(title);
+	this.items = [];
+	this.currentItem = null;
+	this.friends = [];
+	this.lastOpened = null;
+
+	var open = function(e){
+		var item;
+		if(e.item){
+			item = e.item;
+			// riot.route(item.key);
+			// return;
+		}else{
+			var pos = getByID(App.view.items, e);
+			item = App.view.items[pos];
+			if(!item){
+				return;
+			}
+		}
+		
+		if(App.view.currentItem){
+			App.view.currentItem.active = false;
+		}
+		for(var i = 0 ; i < App.view.items.length ; i++){
+			App.view.items[i].active = false;
+		}
+		
+		item.active = true;
+
+		riot.update();
+
+		App.view.currentItem = item;
+
+
+		// .find('option'); //.removeAttr('selected').end().trigger('chosen:updated');//.trigger("chosen:updated");
+		// console.log(sel);
+
+		App[adapter].open(item.key);
+		App[adapter].getSharers(item.key);
+		App.storage.store('last', item.key);
+
+		window.scrollTo(0, 0);
+		$('.page').scrollTop(0);
+		setAndParse(item);
+		riot.update();
+		typed();
 	};
+
+	var remove = function(e){
+		body.removeClass('info');
+		setTimeout(function(){
+			App[adapter].remove();
+		},300);
+		e.preventDefault();
+		e.stopPropagation();
+	};
+
+	var info = function(e){
+		showInfo();
+		e.preventDefault();
+		e.stopPropagation();
+	};
+
+
+	// var updateFileListItem = function(text){
+	// 	var title = trimmedTitle(text);
+	// 	files.find('.file.active').find('span').text(title);
+	// };
 
 	var trimmedTitle = function(value){
-		var title = $.trim(value.split('\n')[0]);
+		var title = $.trim(value.split('\n', 1)[0]);
 		title = title.length > 25 ? title.substr(0,25) : title;
 		return title || '...';
 	};
@@ -922,12 +1230,23 @@ App.view = (function () {
 	return {
 		init:init,
 		setAndParse:setAndParse,
-		updateFileList:updateFileList,
-		updateFileListItem:updateFileListItem,
+		// updateFileList:updateFileList,
+		// updateFileListItem:updateFileListItem,
 		setUser:setUser,
 		trimmedTitle:trimmedTitle,
 		logout:logout,
-		options:options
+		items:items,
+		currentItem:currentItem,
+		friends:friends,
+		open:open,
+		remove:remove,
+		info:info,
+		options:options,
+		showInfo:showInfo,
+		hideInfo:hideInfo,
+		removeSharer:removeSharer,
+		lastOpened:lastOpened,
+		typed:typed
 	};
 
 })();

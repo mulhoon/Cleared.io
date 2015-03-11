@@ -1,24 +1,45 @@
 html{
 	width:100%;
-	height:100%;
+	
+	position:absolute;
+	top:0;
+	background:#FFF;
+	@media #{$mobile} {
+		overflow:hidden;
+		bottom:20px;
+	}
 }
 body{
 	font-family: 'Avenir Next', 'Avenir', sans-serif;
 	font-family: $regular;
-	margin:0;
+	background:#FFF;
 	min-height: 100%;
-	width: 100%;
+	width:100%;
+	margin:0;
 	user-select: text;
 	font-size: 18px;
 	color:$fontcolor;
-	position:absolute;
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
+	overflow:hidden;
+	// border:1px solid red;
+	// @media #{$mobile} {
+	// 	min-height:inherit;
+	// 	height:50%;
+	// 	overflow-y: scroll; /* has to be scroll, not auto */
+	// 	-webkit-overflow-scrolling: touch;
+	// }
+
 }
-*{
+*, *:before, *:after{
 	box-sizing: border-box;
 	white-space-collapsing: discard;
 	-webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+h1, h2, h3, h4{
+	margin:0;
+	padding:0;
+
 }
 a{
 	cursor:pointer;
@@ -34,6 +55,7 @@ a{
 	// position:absolute;
 	// top:10px;
 	// right:10px;
+	height:40px;
 	cursor:pointer;
 }
 .menu{
@@ -47,10 +69,183 @@ a{
 	background-position: center;
 	background-repeat: no-repeat;
 	cursor:pointer;
+	@media #{$mobile} {
+		display:none;
+	}
 }
+sharedsmall{
+	// border:1px solid red;
+	width:50px;
+	height:100px;
+	position:absolute;
+	top:0px;
+	left:0px;
+	text-align: center;
+}
+info{
+	// display:block;
+	// position:relative;
+	// border:1px solid red;
+	// width:100%;
+	// padding:20px;
 
+	.sharing{
+		// border-top:1px solid #CCC;
+		// border-bottom:2px solid #CCC;
+		// padding-top:10px;
+		padding-bottom:10px;
+		// border-radius: 3px;
+		// background:#EEE;
+		margin-bottom: 10px;
+		margin-top: 10px;
+	}
+	.face{
+		display:block;
+		// margin-bottom: 5px;
+		border-bottom: 1px solid #EEE;
+		padding-bottom: 5px;
+		padding-top: 5px;
+		position:relative;
+		height:50px;
+		&:first-child{
+			border-top: 1px solid #EEE;
+		}
+	}
+	.details{
+		font-size: 0.85em;
+		margin-bottom: 40px;
+	}
+	.remove{
+		display:block;
+		width:30px;
+		height:50px;
+		position:absolute;
+		top:0;
+		right:0;
+		background-image: url('../img/ios7-close-outline.svg');
+		background-size: 50%;
+		background-position: center;
+		background-repeat: no-repeat;
+		opacity:0.2;
+		cursor:pointer;
+		&:hover{
+			opacity:0.5;
+		}
+	}
+	.face img{
+		display:block;
+		float: left;
+		vertical-align: middle;
+		margin-right: 5px;
+	}
+	.delete{
+		font-size: 0.85em;
+		background:lighten($red, 25%);
+		color:$red;
+		text-align: center;
+		padding:10px;
+		display:block;
+		border-radius:3px;
+		font-family: $medium;
+		cursor:pointer;
+		&:hover{
+			background:$red;
+			color:#FFF;
+		}
+		// border:1px solid $red;
+	}
+	.middle{
+		.title{
+			font-size: 1.5em;
+			font-family: $regular;
+			position:relative;
+			display:block;
+			// margin-bottom: 10px;
+		}
+		h2{
+			font-size: 0.75em;
+			font-weight: normal;
+			font-family: $medium;
+			margin-bottom: 5px;
+			// text-align: center;
+			text-transform: uppercase;
+			// border-top:3px solid #EEE;
+			// padding-top:10px;
+		}
+		input{
+			margin-bottom:10px;
+			appearance: none;
+			-webkit-appearance: none;
+			width:100%;
+			height:40px;
+			padding:5px;
+			font-family: $medium;
+			font-size: 1em;
+			border:1px solid #EEE;
+			border-radius: 3px;
+			outline:0;
+			transition: border 0.1s ease-in-out;
+			&:focus{
+				border:1px solid $blue;
+			}
+		}
+	}
+}
+.face img{
+	display: inline-block;
+	width:30px;
+	height:30px;
+	// border:1px solid red;
+	border-radius: 15px;
+	overflow:hidden;
+	// margin-bottom: 5px;
+	img{
+		width:100%;
+		height:100%;
+	}
+}
+.addshare{
+	display:block;
+	width:40px;
+	height:50px;
+	background-image: url('../img/ios-people.svg');
+	background-size: 50%;
+	// border:1px solid red;
+	background-position: center;
+	background-repeat: no-repeat;
+	opacity:0.2;
+	cursor:pointer;
+	position:relative;
+	left: 0px;
+	transition: left 0.15s ease-in-out;
+	body.share &, body.hideMenu &{
+		left: -40px;
+		// display:none;
+	}
+}
 .clear{
 	clear:both;
+}
+
+
+.cover{
+	position:fixed;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+	pointer-events: none;
+	transition: all 0.15s ease-in-out;
+	background:rgba(#FFF ,0);
+	body.showMenu &{
+		background:rgba(#FFF, 0.5);
+		pointer-events: auto;
+	}
+	display:none;
+
+	@media #{$mobile} {
+		display:block;
+	}
 }
 
 

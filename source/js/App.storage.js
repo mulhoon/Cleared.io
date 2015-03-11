@@ -1,6 +1,6 @@
 App.storage = (function () {
 
-	var edit, index, _files, loadTrigger;
+	var edit, index;
 	var init = function(){
 
 		edit = $('#edit');
@@ -14,82 +14,94 @@ App.storage = (function () {
 			description : 'Files stored in Cleared.io'
 		});
 
+		getLast();
+		// clear();
 	};
 
 	var clear = function(){
-		localforage.clear();	
-		loadTrigger = null;
-		_files = {};
+		localforage.setItem('files', null);
 		index = null;
 	};
 
-	var save = function(value, title, callback){
+	var save = function(value, title){
 		console.log('saving');
-		if(value){
-			_files[index].text = value || '';
-			_files[index].title = title || '';
-			_files[index].date = new Date().getTime();
+		console.log(index);
+		var id = getByID(App.view.items, index);
+		var item = App.view.items[id];
+
+		if(item){
+			if(item.key==='new'){
+				App.view.items[id].key = guid();
+				index = App.view.items[id].key;
+			}
+			if(value){
+				App.view.items[id].text = value || '';
+				App.view.items[id].date = new Date().getTime();
+			}
 		}
-		localforage.setItem('files', _files);
-		if(callback){
-			callback();
-		}
+		localforage.setItem('files', App.view.items);
+		riot.update();
 	};
 
 	var getCurrentFileID = function(){
 		return index;
 	};
-	var get = function(){
-		return _files;
+
+	var store = function(key, value){
+		localforage.setItem(key, value);
 	};
-	var guid = function(){
-		return Math.random().toString(36).substring(7);
+	var retrieve = function(key, callback){
+		localforage.getItem(key, callback);
 	};
 
-	var add = function(callback, text, id){
+
+	var getLast = function(id){
+		retrieve('last', function(err, value){
+			App.view.lastOpened = value;
+		});
+		retrieve('localcopy', function(err, value){
+			App.view.setAndParse({text:value});
+		});
+	};
+
+	var add = function(text, id){
 		var file = {
 			text: text || '',
-			date: new Date().getTime()
+			date: new Date().getTime(),
+			active:false,
+			key: id || guid()
 		};
-		var uid = id || guid();
-		_files[uid] = file;
-		save(null, '', function(){
-			load(function(_files){
-				loadTrigger(_files);
-				if(!id){
-					callback(uid);
-				}
-			});
-		});
-		
+		App.view.items.push(file);
+		riot.update();
 	};
 
-	var remove = function(id, callback){
-		delete _files[id];
-		save(null, function(){
-			load(function(_files){
-				loadTrigger(_files);
-				if(!id){
-					callback(uid);
-				}
-			});
-		});
-	};
+	var remove = function(){
+		var pos = getByID(App.view.items, index);
+		App.view.items.splice(pos, 1);
 
-	var open = function(id, callback){
-		index = id;
-		console.log("open:"+id);
-		callback(_files[id]);
-	};
-
-	var load = function(callback){
-		if(!loadTrigger){
-			loadTrigger = callback;
+		// Choose nearest one...
+		if(App.view.items[pos]){
+			item = App.view.items[pos];
+		}else if(App.view.items[pos-1]){
+			item = App.view.items[pos-1];
+		}else if(App.view.items[pos+1]){
+			item = App.view.items[pos+1];
 		}
-		localforage.getItem('files', function(err, value) { 
-			_files = value || {};
+		save();
+		if(item){
+			App.view.open({item:item});
+		}
+	};
 
-			if(!Object.size(_files)){
+	var open = function(key){
+		index = key;
+	};
+
+	var load = function(){
+		localforage.getItem('files', function(err, value) { 
+			App.view.items = value || [];
+
+			if(!App.view.items.length){
 				console.log("Loading default...");
 				$.ajax({
 					url : "default.txt",
@@ -97,15 +109,22 @@ App.storage = (function () {
 					success : function (data) {
 						index = null;
 						console.log('loaded default');
-						add(callback, data, 'intro');
+						add(data, 'intro');
+						App.view.open({item:App.view.items[0]});
 					}
 				});
 			}else{
-				console.log('loaded');
-				callback(_files);
+				App.view.items.sort(function(a, b){
+					return b.date - b.date >= 0 ? 1 : -1;
+				});
+				App.view.open({item:App.view.items[0]});
 			}
-			
+			riot.update();
 		});
+	};
+
+	var getSharers = function(){
+		// empty for localstorage
 	};
 
 	return {
@@ -113,10 +132,12 @@ App.storage = (function () {
 		clear:clear,
 		save:save,
 		load:load,
-		get:get,
 		add:add,
 		remove:remove,
+		store:store,
+		retrieve:retrieve,
 		getCurrentFileID:getCurrentFileID,
+		getSharers:getSharers,
 		open:open
 	};
 

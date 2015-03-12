@@ -62,7 +62,7 @@
                     </script>
 
                 <footer>
-                    <img id="signin-google" src="img/signin-google.png"/>
+                    <img class="signin-google" src="img/signin-google.png"/>
                     <div class='user'></div>
                 </footer>
             </div>
@@ -87,11 +87,11 @@
                         <info>
                             <div class='middle'>
                                 <div if={App.view.currentItem}>
-                                    <span class='title'>{ App.view.trimmedTitle(App.view.currentItem.text) }</span><br/>
+                                    <!-- <span class='title'>{ App.view.trimmedTitle(App.view.currentItem.text) }</span><br/> -->
                                     <div class='details'>
-                                    <b>Updated:</b> { moment(App.view.currentItem.date).fromNow() }<br/>
+                                    Updated by {App.view.currentItem.lastEditorName || "Guest"}<br/>{ moment(App.view.currentItem.date).fromNow() }<br/><br/>
                                     <b>Words:</b> { App.view.currentItem.text.split(" ").length }<br/>
-                                    <b>Complete:</b> 50%
+
                                     </div>
                                     <div if={App.view.currentItem.sharers} class="sharing">
                                         <h2>Sharing:</h2>
@@ -100,12 +100,16 @@
                                             <img if={picture} src="{ picture }?sz=60"/> 
                                             <img if={!picture} src="img/default_user.jpg"/>
                                             {firstname||"Unknown"} {lastname}<br/>
-                                            <span class='tag mention'>@{username}</span>
-                                            <div class='remove' onclick={App.view.removeSharer}></div>
+                                            <!-- <span class='tag mention'>@{username}</span>-->
+                                            <div class='remove' onclick={App.view.removeSharer} if={(key!==App.view.auth.uid && App.view.auth.uid===App.view.currentItem.owner) || (key===App.view.auth.uid && key!==App.view.currentItem.owner)}></div>
                                         </div>
                                     </div>
+                                    <div if={!App.view.auth}>
+                                    Sign in to share with others.<br/><br/>
+                                    <img class="signin-google" src="img/signin-google.png" onclick={App.cloud.login}/>
+                                    </div>
                                 </div>
-                                <div class='delete' onclick={App.view.remove}>Delete</div>
+                                <div if={App.view.currentItem.owner === App.view.auth.uid } class='delete' onclick={App.view.remove}>Delete</div>
                             </div>
                         </info>
                     </script>

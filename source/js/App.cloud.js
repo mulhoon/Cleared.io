@@ -22,14 +22,16 @@ App.cloud = (function () {
 			auth = authData;
 			auth.deviceID = guid();
 
+			App.view.auth = auth;
+
 			App.storage.retrieve('guid', function(err, value){
 				var id = value ? value : guid();
 				auth.deviceID = id;
-				console.log(auth.deviceID);
+				
 				App.storage.store('guid', id);
 			});
-			
-
+			// console.log("#");
+			// console.log(authData.uid);
 			user = users.child(authData.uid);
 			if(App.view.items){
 				migrateItems = JSON.parse(JSON.stringify(App.view.items));
@@ -43,6 +45,7 @@ App.cloud = (function () {
 			auth = null;
 			file = null;
 			user = null;
+			App.view.auth = null;
 			console.log("User is logged out");
 		    // Try to authenticate with Google via OAuth redirection
 		}
@@ -54,25 +57,31 @@ App.cloud = (function () {
 		var obj = {
 			date: date,
 			text: data ? data.text || "" : "",
+			owner: auth.uid, 
 			lastEditor: auth.deviceID,
+			lastEditorName: auth[auth.provider].displayName,
 			users:{}
 		};
 		obj.users[auth.uid] = true;
-		file = files.push(obj, function(){
-			var key = file.key();
-			var userFile = user.child('files').child(key);
-			var pos = getByID(App.view.items, 'new');
-			if(pos!==-1){
-				App.view.items[pos].key = key;
-			}
-			userFile.setWithPriority(true, date, callback);
+		file = files.push();
+		file.update(obj);
 
-		});
+		var key = file.key();
+		var userFile = user.child('files').child(key);
+		var pos = getByID(App.view.items, 'new');
+		if(pos!==-1){
+			App.view.items[pos].key = key;
+		}
+		userFile.setWithPriority(true, date, callback);
+
 	};
 	var removeItem = function(key){
+		console.log('removeItem:'+key);
 			var pos = getByID(App.view.items, key);
+			
 			if(pos!==-1){
 				App.view.items.splice(pos,1);
+				console.log("removed item");
 				var item;
 				if(App.view.items[pos]){
 					item = App.view.items[pos];
@@ -84,6 +93,15 @@ App.cloud = (function () {
 				if(item){
 					App.view.open({item:item});
 				}
+
+				if(!App.view.items.length){
+					riot.update();
+					App.storage.store('localcopy', '');
+					App.view.add();
+				}
+
+				// console.log(pos);
+				// console.log(App.view.items);
 			}
 	};
 
@@ -91,11 +109,18 @@ App.cloud = (function () {
 	var load = function(){
 		var time = new Date().getTime();
 		user.child('files').on("child_removed", function(snap){
+			files.child(snap.key()).off();
 			removeItem(snap.key());
 		});
 		var total = 0;
 		var cached = 0;
 		var opened;
+
+		user.child('files').once("value", function(s){
+			if(!s.val()){
+				App.view.add();
+			}
+		});
 
 		user.child('files').orderByPriority().on("child_added", function(snap){
 			var val = snap.val();
@@ -103,7 +128,7 @@ App.cloud = (function () {
 			total++;
 
 			var isNew = getByID(App.view.items, key) === -1;
-
+			// console.log("added item");
 
 			files.child(key).on("value", function(snaptitle){
 				// console.log("value change");
@@ -151,7 +176,7 @@ App.cloud = (function () {
 	var shareWatchProfiles;
 
 	var getSharers = function(key){
-		cleanup();
+		
 		App.view.currentItem.sharers = [];
 		shareWatch = files.child(key).child('users');
 		shareWatchProfiles = [];
@@ -172,9 +197,21 @@ App.cloud = (function () {
 		 	});
 		});
 		shareWatch.on("child_removed", function(snap){
+			console.log("removing friend (child)");
+			var key = snap.key();
 			var pos = getByID(App.view.currentItem.sharers, snap.key());
+
 			if(pos!==-1){
+				for(var i = 0 ; i < shareWatchProfiles.length ; i++){
+					if(shareWatchProfiles[i].key()=== key){
+						shareWatchProfiles[i].off();
+						shareWatchProfiles.splice(i, 1);
+						break;
+					}
+				}
+
 				App.view.currentItem.sharers.splice(pos,1);
+				// riot.update();
 			}
 		});
 	};
@@ -183,10 +220,20 @@ App.cloud = (function () {
 		var user = {};
 		user[friend.key] = true;
 		shareWatch.update(user);
+
+		var ufile = {};
+		ufile[file.key()] = true;
+		users.child(friend.key).child('files').update(ufile);
 	};
+
 	var removeSharer = function(friend){
 		console.log("remove friend");
-		shareWatch.child(friend.key).remove();
+		var filekey = file.key();
+		var friendkey = friend.key;
+
+		shareWatch.child(friendkey).remove();
+		users.child(friendkey).child('files').child(filekey).remove();
+		
 	};
 
 	var getFriends = function(){
@@ -206,9 +253,10 @@ App.cloud = (function () {
 	};
 
 	var cleanup = function(){
+		// console.log("clean up");
 		if(shareWatch){
 			shareWatch.off();
-			for(var i = 0 ; i > shareWatchProfiles.length ; i++){
+			for(var i = 0 ; i < shareWatchProfiles.length ; i++){
 				shareWatchProfiles[i].off();
 			}
 		}
@@ -222,6 +270,7 @@ App.cloud = (function () {
 	var openit;
 
 	var open = function(value){
+		cleanup();
 		if(value!=="new"){
 			file = files.child(value);
 		}else{
@@ -235,7 +284,8 @@ App.cloud = (function () {
 			file.update({
 				text: value,
 				date: date,
-				lastEditor: auth.deviceID
+				lastEditor: auth.deviceID,
+				lastEditorName: auth[auth.provider].displayName
 			});
 			var userFile = user.child('files').child(file.key());
 			userFile.setPriority(date);
@@ -259,12 +309,17 @@ App.cloud = (function () {
 		}
 	};
 
-	var migrate = function(){
+	var migrate = function(migrateAll){
 		for(var i = 0 ; i < migrateItems.length ; i++){
 			var item = migrateItems[i];
-			if(item.key!=='intro'){
+			if(migrateAll){
 				add(function(){}, item);
+			}else{
+				if(item.key!=='intro' && item.key!=='about' ){
+					add(function(){}, item);
+				}
 			}
+
 		}
 		App.storage.clear();
 	};
@@ -289,8 +344,9 @@ App.cloud = (function () {
 	var updateUser = function(authData){
 
 		var userData = authData[authData.provider].cachedUserProfile;
-		users.once('value', function(dataSnapshot) {
+		user.once('value', function(dataSnapshot) {
 			var userExists = dataSnapshot.exists();
+			// console.log('userExists:'+userExists);
 			var obj = {
 					provider: authData.provider,
 					firstname: userData.given_name,
@@ -302,7 +358,7 @@ App.cloud = (function () {
 			if(!userExists){
 				user.set(obj, function(){
 					console.log("Successfully signed up");
-					migrate();
+					migrate(true);
 				});
 			}else{
 				user.update(obj, function(){

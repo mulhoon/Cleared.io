@@ -1,0 +1,16 @@
+Features:
+☐ Collaborate on a files
+☐ Cross platform - instantly updated
+☐ Great for teams or personal notes
+☐ 100% secure over SSL
+
+Advanced tips:
+- create titles by ending with a colon
+- use ⌘+D to toggle as done 
+- use ⌘+↑ and ⌘+↓ to reorder your items 
+- some tags are special #bug, #enhancement, #question 
+- something wrong? mark it as #invalid
+- use ⌘+M to toggle the menu 
+- not signed in? everything is saved in your browser until you do
+- links are automatically detected too... example.com
+

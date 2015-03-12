@@ -1,7 +1,7 @@
 #sidebar{
 	position:fixed;
 	-webkit-user-select:none;
-	font-size: 14px;
+	font-size: 0.75em;
 	min-height:100%;
 	overflow:hidden;
 	word-wrap: break-word;
@@ -19,6 +19,7 @@
 	@media #{$mobile} {
 		border-right:0;
 		width:75%;
+		font-size: 0.9em;
 	}
 	body.showMenu &{
 		transform: translate3d(0,0,0);
@@ -61,7 +62,7 @@
 		left:0;
 		width: 250px;
 		bottom:0;
-		border-right: 1px solid #EEE;
+		// border-right: 1px solid #EEE;
 		transition: all 0.2s ease-in-out;
 		transform:translate3d(0, 0, 0);
 		background:lighten(#EEE, 4%);
@@ -162,7 +163,7 @@
 	files{
 		position:absolute;
 		border-top:1px solid #EEE;
-		border-bottom:1px solid #EEE;
+		// border-bottom:1px solid #EEE;
 		width:100%;
 		top:50px;
 		bottom:50px;
@@ -176,12 +177,15 @@
 
 		.file{
 			padding-left:15px;
+			border:0;
+			outline:0;
 			border-bottom:1px solid #EEE;
 			cursor:pointer;
 			min-height: 50px;
 			line-height: 50px;
 			position:relative;
-			// width:100%;
+			display:block;
+			width:100%;
 			@media #{$mobile} {
 				min-height: 60px;
 				line-height: 60px;
@@ -220,6 +224,9 @@
 					background-position: center;
 					background-repeat: no-repeat;
 					opacity:0.5;
+					@media #{$mobile} {
+						top:28px;
+					}
 				}
 			}
 			&.active.shared:after{

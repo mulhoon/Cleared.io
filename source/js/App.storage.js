@@ -26,10 +26,14 @@ App.storage = (function () {
 	var save = function(value, title){
 		console.log('saving');
 		console.log(index);
+
 		var id = getByID(App.view.items, index);
 		var item = App.view.items[id];
 
 		if(item){
+			item.owner = 'guest';
+			item.lastEditor = null;
+			item.lastEditorName = 'Guest';
 			if(item.key==='new'){
 				App.view.items[id].key = guid();
 				index = App.view.items[id].key;
@@ -39,7 +43,7 @@ App.storage = (function () {
 				App.view.items[id].date = new Date().getTime();
 			}
 		}
-		localforage.setItem('files', App.view.items);
+		store('files', App.view.items);
 		riot.update();
 	};
 
@@ -56,6 +60,9 @@ App.storage = (function () {
 
 
 	var getLast = function(id){
+		// retrieve('files', function(err, value){
+		// 	App.view.setAndParse({text:value});
+		// });
 		retrieve('last', function(err, value){
 			App.view.lastOpened = value;
 		});
@@ -69,6 +76,9 @@ App.storage = (function () {
 			text: text || '',
 			date: new Date().getTime(),
 			active:false,
+			owner: 'guest',
+			lastEditor: null,
+			lastEditorName: 'Guest',
 			key: id || guid()
 		};
 		App.view.items.push(file);
@@ -78,7 +88,7 @@ App.storage = (function () {
 	var remove = function(){
 		var pos = getByID(App.view.items, index);
 		App.view.items.splice(pos, 1);
-
+		var item;
 		// Choose nearest one...
 		if(App.view.items[pos]){
 			item = App.view.items[pos];
@@ -90,6 +100,9 @@ App.storage = (function () {
 		save();
 		if(item){
 			App.view.open({item:item});
+		}else{
+			App.storage.store('localcopy', '');
+			App.view.add();
 		}
 	};
 
@@ -106,11 +119,20 @@ App.storage = (function () {
 				$.ajax({
 					url : "default.txt",
 					dataType: "text",
+					cache:false,
 					success : function (data) {
 						index = null;
 						console.log('loaded default');
 						add(data, 'intro');
 						App.view.open({item:App.view.items[0]});
+						$.ajax({
+							url : "advanced.txt",
+							dataType: "text",
+							cache:false,
+							success : function (data) {
+								add(data, 'about');
+							}
+						});
 					}
 				});
 			}else{

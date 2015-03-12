@@ -30,6 +30,7 @@ body {
   font-family: 'Avenir Next', 'Avenir', sans-serif;
   font-family: "AvenirNextLTPro-Regular", "Avenir Next", "Avenir", sans-serif;
   background: #FFF;
+  width: 100%;
   min-height: 100%;
   width: 100%;
   margin: 0;
@@ -41,7 +42,8 @@ body {
   color: #666666;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow: hidden; }
+  overflow: hidden;
+  overflow-y: scroll; }
 
 *, *:before, *:after {
   -webkit-box-sizing: border-box;
@@ -62,7 +64,7 @@ a {
   a:hover {
     text-decoration: none; }
 
-#signin-google {
+.signin-google {
   height: 40px;
   cursor: pointer; }
 
@@ -99,11 +101,17 @@ info .face {
   padding-bottom: 5px;
   padding-top: 5px;
   position: relative;
-  height: 50px; }
+  height: 50px;
+  line-height: 40px;
+  -webkit-animation: yellow-fade 0.5s ease-in 1;
+          animation: yellow-fade 0.5s ease-in 1; }
+  info .face img {
+    vertical-align: middle;
+    display: inline-block;
+    margin-right: 5px; }
   info .face:first-child {
     border-top: 1px solid #EEE; }
 info .details {
-  font-size: 0.85em;
   margin-bottom: 40px; }
 info .remove {
   display: block;
@@ -120,11 +128,6 @@ info .remove {
   cursor: pointer; }
   info .remove:hover {
     opacity: 0.5; }
-info .face img {
-  display: block;
-  float: left;
-  vertical-align: middle;
-  margin-right: 5px; }
 info .delete {
   font-size: 0.85em;
   background: #fdd7dd;
@@ -220,7 +223,7 @@ info .middle input {
 #sidebar {
   position: fixed;
   -webkit-user-select: none;
-  font-size: 14px;
+  font-size: 0.75em;
   min-height: 100%;
   overflow: hidden;
   word-wrap: break-word;
@@ -239,7 +242,8 @@ info .middle input {
   @media screen and (max-width: 667px) {
     #sidebar {
       border-right: 0;
-      width: 75%; } }
+      width: 75%;
+      font-size: 0.9em; } }
   body.showMenu #sidebar {
     -webkit-transform: translate3d(0, 0, 0);
             transform: translate3d(0, 0, 0); }
@@ -252,7 +256,6 @@ info .middle input {
     left: 0;
     width: 250px;
     bottom: 0;
-    border-right: 1px solid #EEE;
     -webkit-transition: all 0.2s ease-in-out;
             transition: all 0.2s ease-in-out;
     -webkit-transform: translate3d(0, 0, 0);
@@ -360,7 +363,6 @@ info .middle input {
   #sidebar files {
     position: absolute;
     border-top: 1px solid #EEE;
-    border-bottom: 1px solid #EEE;
     width: 100%;
     top: 50px;
     bottom: 50px;
@@ -373,11 +375,15 @@ info .middle input {
         font-family: "AvenirNextLTPro-Medium", "Avenir Next", "Avenir", sans-serif; } }
     #sidebar files .file {
       padding-left: 15px;
+      border: 0;
+      outline: 0;
       border-bottom: 1px solid #EEE;
       cursor: pointer;
       min-height: 50px;
       line-height: 50px;
-      position: relative; }
+      position: relative;
+      display: block;
+      width: 100%; }
       @media screen and (max-width: 667px) {
         #sidebar files .file {
           min-height: 60px;
@@ -412,6 +418,9 @@ info .middle input {
         background-position: center;
         background-repeat: no-repeat;
         opacity: 0.5; }
+        @media screen and (max-width: 667px) {
+          #sidebar files .file.shared:after {
+            top: 28px; } }
       #sidebar files .file.active.shared:after {
         display: none; }
       #sidebar files .file .info, #sidebar files .file .shared {
@@ -596,20 +605,28 @@ info .middle input {
 
 @-webkit-keyframes yellow-fade {
   0% {
-    background: lightyellow; }
+    background: lightyellow;
+    -webkit-transform: scale(1.05);
+            transform: scale(1.05); }
 
   100% {
-    background: none; } }
+    background: none;
+    -webkit-transform: scale(1);
+            transform: scale(1); } }
 
 @keyframes yellow-fade {
   0% {
-    background: lightyellow; }
+    background: lightyellow;
+    -webkit-transform: scale(1.05);
+            transform: scale(1.05); }
 
   100% {
-    background: none; } }
+    background: none;
+    -webkit-transform: scale(1);
+            transform: scale(1); } }
 .blink {
-  -webkit-animation: yellow-fade 0.5s ease-in 1;
-          animation: yellow-fade 0.5s ease-in 1; }
+  -webkit-animation: yellow-fade 0.25s ease-in 1;
+          animation: yellow-fade 0.25s ease-in 1; }
 
 ::-moz-selection {
   background: rgba(255, 255, 125, 0.99);
@@ -654,23 +671,29 @@ info .middle input {
       #search select {
         display: none; } }
 
-.tag, .mention {
+.tag, .mention, .internal {
   font-family: "AvenirNextLTPro-Medium", "Avenir Next", "Avenir", sans-serif;
   color: #333;
   font-weight: 500;
   margin: 0;
   border: 0;
   outline: 0; }
-  .tag[data-id='#done'], .mention[data-id='#done'] {
+  .tag[data-id='#done'], .mention[data-id='#done'], .internal[data-id='#done'] {
     color: #3d9970; }
-  .tag[data-id='#invalid'], .mention[data-id='#invalid'] {
+  .tag[data-id='#invalid'], .mention[data-id='#invalid'], .internal[data-id='#invalid'] {
     color: #f75e75; }
-  .tag[data-id='#bug'], .mention[data-id='#bug'] {
+  .tag[data-id='#bug'], .mention[data-id='#bug'], .internal[data-id='#bug'] {
     color: #f75e75; }
-  .tag[data-id='#enhancement'], .mention[data-id='#enhancement'] {
+  .tag[data-id='#enhancement'], .mention[data-id='#enhancement'], .internal[data-id='#enhancement'] {
     color: #84b6eb; }
-  .tag[data-id='#question'], .mention[data-id='#question'] {
+  .tag[data-id='#question'], .mention[data-id='#question'], .internal[data-id='#question'] {
     color: #cc317c; }
+
+.internal {
+  color: #3d9970;
+  cursor: pointer; }
+  .internal:hover {
+    text-decoration: underline; }
 
 .mention {
   color: #0074d9; }

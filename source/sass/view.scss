@@ -13,6 +13,7 @@ body{
 	font-family: 'Avenir Next', 'Avenir', sans-serif;
 	font-family: $regular;
 	background:#FFF;
+	width:100%;
 	min-height: 100%;
 	width:100%;
 	margin:0;
@@ -22,6 +23,11 @@ body{
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 	overflow:hidden;
+	overflow-y: scroll;
+	// @media #{$mobile} { 
+	// 	overflow-y:scroll;
+	// 	overflow-x:hidden;
+	// }
 	// border:1px solid red;
 	// @media #{$mobile} {
 	// 	min-height:inherit;
@@ -51,7 +57,7 @@ a{
 		text-decoration: none;
 	}
 }
-#signin-google{
+.signin-google{
 	// position:absolute;
 	// top:10px;
 	// right:10px;
@@ -107,12 +113,19 @@ info{
 		padding-top: 5px;
 		position:relative;
 		height:50px;
+		line-height: 40px;
+		animation: yellow-fade 0.5s ease-in 1;
+		img{
+			vertical-align: middle;
+			display:inline-block;
+			margin-right: 5px;
+		}
 		&:first-child{
 			border-top: 1px solid #EEE;
 		}
 	}
 	.details{
-		font-size: 0.85em;
+		// font-size: 0.85em;
 		margin-bottom: 40px;
 	}
 	.remove{
@@ -132,12 +145,7 @@ info{
 			opacity:0.5;
 		}
 	}
-	.face img{
-		display:block;
-		float: left;
-		vertical-align: middle;
-		margin-right: 5px;
-	}
+
 	.delete{
 		font-size: 0.85em;
 		background:lighten($red, 25%);

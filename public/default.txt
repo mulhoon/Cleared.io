@@ -1,16 +1,17 @@
 Welcome to Cleared:
 The notepad with superpowers.
 
-☐ create a todo item by typing a dash+space on a new line 
-☑ check it off by tapping the checkbox #done (Feb,18th 17:56)
-☐ use tags to organise your notes #design 
-☐ or mention people @chris
+- create a todo item by typing a dash+space on a new line 
+- check it off by tapping the checkbox #done
+- use tags to organise your notes #design 
+- or mention people @chris
+- collaborate with others
+- tap the menu icon (top left) to learn more.
 
-Advanced tips:
-☐ create titles by ending with a colon
-☐ use ⌘+D to toggle as done 
-☐ use ⌘+↑ and ⌘+↓ to reorder your items 
-☐ some tags are special #bug, #enhancement, #question 
-☒ something wrong? mark it as #invalid
-☐ everything is saved in your browser
-☐ links are automatically detected too... example.com
+Sign in with [google]
+
+
+
+
+
+

@@ -197,12 +197,18 @@
 }
 
 @keyframes yellow-fade {   
-   0% {background: $highyellow;}
-   100% {background: none;}
+   0% {
+   	background: $highyellow;
+   	transform: scale(1.05);
+   }
+   100% {
+   	background: none;
+   	transform: scale(1);
+   }
 }
 
 .blink {
-   animation: yellow-fade 0.5s ease-in 1;
+   animation: yellow-fade 0.25s ease-in 1;
 }
 
  ::selection {

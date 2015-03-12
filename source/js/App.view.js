@@ -71,6 +71,9 @@ App.view = (function () {
 		},
 		'40': function(){ // Option+Down
 			moveItem(1);
+		},
+		'77': function(){ // Option+Down
+			body.toggleClass('showMenu');
 		}
 	};
 
@@ -98,7 +101,7 @@ App.view = (function () {
 		newfile 	= $(".newfile-button");
 		settingbut 	= $(".setting-button");
 		search 		= $("#search input");
-		signin 	= $('#signin-google');
+		signin 	= 	$('.signin-google');
 		selectedElement = $('<div/>');
 		pullpanels = $("#sidebar, .page");
 
@@ -107,9 +110,10 @@ App.view = (function () {
 				h:window.innerHeight
 		};
 
+		// $("#search").hide();
+
 		riotMenu();
 		
-		// $("#search").hide();
 
 		// Setup storage adapter
 		App.storage.init();
@@ -159,29 +163,42 @@ App.view = (function () {
 
 	var typed = function(){
 		$('.typeahead').textcomplete([{
-		    match: /(^|\s)@(\w{2,})$/,
+		    // match: /(^|\s)@(\w{2,})$/,
+		    match: /(^|\s)(\w{2,})$/,
 		    search: function (term, callback) {
-		    	console.log(term);
+		    	term = term.toLowerCase();
 		        callback($.map(friends, function (e) {
-		            return e.username.indexOf(term) === 0 ? e.username: null;
+		        	if(e.firstname && e.lastname){
+			        	if((e.firstname.toLowerCase().indexOf(term)===0 || 
+			        		e.lastname.toLowerCase().indexOf(term)===0
+			        		) && e.key!==App.view.auth.uid){
+			        		return e;//.firstname + " " + e.lastname + " - @" + e.username;
+			        	}else{
+			        		return null;
+			        	}
+		        	}else{
+		        		return null;
+		        	}
+		        	// var reg = new RegExp("/"+term+"(\\w+)/");
+		        	// return fullname.match(reg) ? e.username : null;
+		            // return e.username.indexOf(term) === 0 ? e.username: null;
 		        }));
 		    },
 		    replace: function (word) {
 		        return word + ' ';
+		    },
+		    template: function(e){
+		    	return e.firstname + " " + e.lastname;
 		    }
 		}], {
 			// placement: 'bottom|absleft'
 		}).on({
         'textComplete:select': function (e, value, strategy) {
-	 		var elementPos = friends.map(function(e){
-				return e.username; 
-			}).indexOf(value);
-			var friend = friends[elementPos];
-			App[adapter].addSharer(friend);
+			App[adapter].addSharer(value);
         }
     	}
         ).on('focus', function(){
-   			$(this).val('@');
+   			$(this).val('');
    		}).on('blur', function(){
    			$(this).val('');
    			// window.scrollTo(0,0);
@@ -189,7 +206,18 @@ App.view = (function () {
 	};
 
 	var removeSharer = function(e){
-		App[adapter].removeSharer(e.item);
+		var item = e.item;
+
+		if(App.view.currentItem.owner !== App.view.auth.uid){
+			body.removeClass('info');
+			setTimeout(function(){
+				App[adapter].removeSharer(item);
+			},300);
+		}else{
+			App[adapter].removeSharer(item);
+		}
+		e.preventDefault();
+		e.stopPropagation();
 	};
 
 
@@ -201,6 +229,7 @@ App.view = (function () {
 		}else{
 			$('.user').text('').hide();
 			signin.show();
+			App.view.auth = {uid:'guest'};
 			adapter = 'storage';
 		}
 
@@ -365,7 +394,7 @@ App.view = (function () {
 
 		edit.on(event_release, '.mark', toggleDone).on(event_down, '.mark', prevent);
 		body.on(click, 'a', openURL);
-
+		body.on(click, '.internal', runInternal);
 
 		var tagDelay;
 		edit.on('input', function(e){
@@ -407,9 +436,7 @@ App.view = (function () {
 
 
 		newfile.on(click, function(){
-			var newObj = {text:"", active:true, key:"new"};
-			App.view.items.unshift(newObj);
-			open({item:newObj});
+			add();
 		});
 
 		settingbut.on(click, function(){
@@ -494,6 +521,11 @@ App.view = (function () {
 		return Math.min(Math.max(value, min), max);
 	};
 
+	var add = function(){
+		var newObj = {text:"", active:true, key:"new"};
+		App.view.items.unshift(newObj);
+		open({item:newObj});
+	};
 
 	var pullMenu = function(x){
 		// console.log(y);
@@ -706,6 +738,7 @@ App.view = (function () {
 					var txt = getAllText();
 					App[adapter].save(txt);
 					App.storage.store('localcopy', txt);
+					// App.storage.store('files', App.view.items);
 				}
 				oldhtml = html;
 				oldcursor = cursor;
@@ -759,6 +792,14 @@ App.view = (function () {
 		return;
 	};
 
+	var runInternal = function(e){
+		var id = $(this).data().id;
+		if(id==='[google]'){
+			App.cloud.login();
+		}
+		e.preventDefault();
+	};
+
 	var runSearch = function(){
 
 		var chosen = $(".chosen option:selected");
@@ -809,7 +850,8 @@ App.view = (function () {
 		var tags = 		parseTags(highlight.html, 'tag', '#'); 
 		var mentions = 	parseTags(tags.html, 'mention', '@'); 
 		var links = 	parseLinks(mentions.html);
-		var todo = 		parseTodo(links.html, tags.tags);
+		var internals = parseTags(links.html, 'internal', '[', '\\]');
+		var todo = 		parseTodo(internals.html, tags.tags);
 		var newText = 	todo.html;
 
 		// Apply classes
@@ -880,7 +922,9 @@ App.view = (function () {
 
 
 	var addSearchOptions = function(options){
+		// console.log("addSearchOptions");
 		if($.isEmptyObject(options[0].tags) && $.isEmptyObject(options[1].tags)){
+			// console.log("addSearchOptions:hide");
 			$("#search").hide();
 			return;
 		}
@@ -962,6 +1006,7 @@ App.view = (function () {
 		_filter = '';
 		$('.chosen').val('').trigger('chosen:updated');
 
+		
 		if(!value){
 			text = _default;
 			isReset = true;
@@ -1153,6 +1198,7 @@ App.view = (function () {
 	this.currentItem = null;
 	this.friends = [];
 	this.lastOpened = null;
+	this.auth = null;
 
 	var open = function(e){
 		var item;
@@ -1197,10 +1243,14 @@ App.view = (function () {
 	};
 
 	var remove = function(e){
-		body.removeClass('info');
-		setTimeout(function(){
-			App[adapter].remove();
-		},300);
+		var r = confirm("Are you sure you want to delete this document?");
+		if(r){
+			body.removeClass('info');
+			setTimeout(function(){
+				App[adapter].remove();
+			},300);
+		}
+
 		e.preventDefault();
 		e.stopPropagation();
 	};
@@ -1246,6 +1296,8 @@ App.view = (function () {
 		hideInfo:hideInfo,
 		removeSharer:removeSharer,
 		lastOpened:lastOpened,
+		auth:auth,
+		add:add,
 		typed:typed
 	};
 

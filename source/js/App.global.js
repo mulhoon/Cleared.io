@@ -16,7 +16,7 @@ var scripts = [
 	{switchery: 	"js/vendor/switchery.min.js"},
 	{fastclick: 	"js/vendor/fastclick.js"},
 	{hammer: 		"js/vendor/hammer.min.js"},
-	// {nobounce: 		"js/vendor/inobounce.min.js"},
+	{sortable: 		"js/vendor/Sortable.min.js"},
 	// {fontloader: 	"js/vendor/webfontloader.js"},
 	{firebase: 		"js/vendor/firebase.js"},
 	{textcomplete: 	"js/vendor/jquery.textcomplete.min.js"},

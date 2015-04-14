@@ -1,17 +1,12 @@
 Welcome to Cleared:
 The notepad with superpowers.
 
-- create a todo item by typing a dash+space on a new line 
-- check it off by tapping the checkbox #done
-- use tags to organise your notes #design 
-- or mention people @chris
-- collaborate with others
-- tap the menu icon (top left) to learn more.
+Editing Cleared is the same as editing a text file, except Cleared recognises things like headings, todo lists, tags and links.
 
-Sign in with [google]
+☐ create a todo item by typing a dash+space on a new line 
+☐ check it off by tapping the checkbox #done
+☐ use tags to organise your notes #design
+☐ or mention people @chris
+☐ tap the menu icon to find out more
 
-
-
-
-
-
+©2015 Cleared

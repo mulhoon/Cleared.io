@@ -24,8 +24,8 @@ App.storage = (function () {
 	};
 
 	var save = function(value, title){
-		console.log('saving');
-		console.log(index);
+		// console.log('saving');
+		// console.log(index);
 
 		var id = getByID(App.view.items, index);
 		var item = App.view.items[id];

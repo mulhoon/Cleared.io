@@ -16,11 +16,19 @@
   src: url("../fonts/ticks.eot#iefix") format("embedded-opentype"), url("../fonts/ticks.woff") format("woff"), url("../fonts/ticks.ttf") format("truetype"), url("../fonts/ticks.svg") format("svg");
   font-weight: normal;
   font-style: normal; }
+@font-face {
+  font-family: 'Frieght Regular';
+  src: url("../fonts/Freight/29D26A_0_0.eot");
+  src: url("../fonts/Freight/29D26A_0_0.eot?#iefix") format("embedded-opentype"), url("../fonts/Freight/29D26A_0_0.woff") format("woff"), url("../fonts/Freight/29D26A_0_0.ttf") format("truetype"); }
+@font-face {
+  font-family: 'Frieght Medium';
+  src: url("../fonts/Freight/29D26A_1_0.eot");
+  src: url("../fonts/Freight/29D26A_1_0.eot?#iefix") format("embedded-opentype"), url("../fonts/Freight/29D26A_1_0.woff") format("woff"), url("../fonts/Freight/29D26A_1_0.ttf") format("truetype"); }
 html {
   width: 100%;
   position: absolute;
   top: 0;
-  background: #FFF; }
+  background: #f8f8f8; }
   @media screen and (max-width: 667px) {
     html {
       overflow: hidden;
@@ -29,7 +37,6 @@ html {
 body {
   font-family: 'Avenir Next', 'Avenir', sans-serif;
   font-family: "AvenirNextLTPro-Regular", "Avenir Next", "Avenir", sans-serif;
-  background: #FFF;
   width: 100%;
   min-height: 100%;
   width: 100%;
@@ -39,7 +46,7 @@ body {
       -ms-user-select: text;
           user-select: text;
   font-size: 18px;
-  color: #666666;
+  color: #444444;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow: hidden;
@@ -259,8 +266,7 @@ info .middle input {
     -webkit-transition: all 0.2s ease-in-out;
             transition: all 0.2s ease-in-out;
     -webkit-transform: translate3d(0, 0, 0);
-            transform: translate3d(0, 0, 0);
-    background: #f8f8f8; }
+            transform: translate3d(0, 0, 0); }
     #sidebar .panel footer, #sidebar .panel header {
       position: absolute;
       display: block;
@@ -503,6 +509,8 @@ info .middle input {
   .page div {
     line-height: 30px; }
   .page #edit {
+    font-size: 16px;
+    font-size: 0.85em;
     margin: 0 auto;
     position: relative;
     outline: 0;
@@ -514,10 +522,10 @@ info .middle input {
     margin-bottom: 20px;
     line-height: 100%;
     display: block;
-    width: 780px;
+    width: 720px;
     padding-left: 10px;
     padding-right: 10px;
-    margin-top: 40px; }
+    margin-top: 60px; }
     body.editing .page #edit {
       min-height: inherit; }
     @media screen and (max-width: 667px) {
@@ -550,10 +558,16 @@ info .middle input {
       margin: 0;
       line-height: 140%;
       overflow: visible; }
-      .page #edit p .highlight {
-        background: rgba(255, 255, 125, 0.99);
-        -webkit-border-radius: 3px;
-                border-radius: 3px; }
+      .page #edit p em {
+        font-style: italic; }
+      .page #edit p strong {
+        font-family: "AvenirNextLTPro-Medium", "Avenir Next", "Avenir", sans-serif;
+        font-weight: normal; }
+      .page #edit p code {
+        display: inline-block;
+        line-height: 100%;
+        background: #EEE;
+        font-size: 0.85em; }
       .page #edit p .mark {
         cursor: pointer;
         position: relative;
@@ -569,71 +583,125 @@ info .middle input {
             padding-left: 20px; } }
         .page #edit p .mark.invalid {
           color: #f75e75; }
-      .page #edit p.todo[data-id~='#done'], .page #edit p.todo[data-id~='#invalid'] {
-        color: #CCC !important; }
-        .page #edit p.todo[data-id~='#done'] .tag, .page #edit p.todo[data-id~='#invalid'] .tag {
-          color: #CCC; }
-          .page #edit p.todo[data-id~='#done'] .tag[data-id='#done'], .page #edit p.todo[data-id~='#invalid'] .tag[data-id='#done'] {
-            color: #3d9970; }
-          .page #edit p.todo[data-id~='#done'] .tag[data-id='#invalid'], .page #edit p.todo[data-id~='#invalid'] .tag[data-id='#invalid'] {
+      .page #edit p.bullet, .page #edit p.numbered {
+        margin-left: 20px; }
+      .page #edit p .bullet, .page #edit p .number {
+        color: #3d9970;
+        font-family: "AvenirNextLTPro-Medium", "Avenir Next", "Avenir", sans-serif; }
+      .page #edit p .number {
+        text-align: right; }
+      .page #edit p.important {
+        color: #e69500; }
+      .page #edit p.important2 {
+        color: #f75e75; }
+      .page #edit p[data-id~='#important'] {
+        color: #f75e75 !important; }
+        .page #edit p[data-id~='#important'] .tag[data-id~='#important'] {
+          color: #f75e75; }
+        .page #edit p[data-id~='#important'].todo {
+          color: #f75e75;
+          background: #fef0f2;
+          border-color: #fdd7dd; }
+          .page #edit p[data-id~='#important'].todo:before {
+            border-color: #f75e75; }
+          .page #edit p[data-id~='#important'].todo .mark {
             color: #f75e75; }
-        .page #edit p.todo[data-id~='#done'] .mention, .page #edit p.todo[data-id~='#invalid'] .mention {
-          color: #CCC; }
-        .page #edit p.todo[data-id~='#done'] .mark, .page #edit p.todo[data-id~='#invalid'] .mark {
-          color: #CCC; }
-      @media screen and (max-width: 667px) {
-        .page #edit p.todo {
-          padding-bottom: 3px;
-          padding-top: 3px; } }
-      .page #edit p.title {
+      .page #edit p.todo {
+        border: 1px solid #EEE;
+        border-left: 0;
+        border-top: 0;
+        padding: 8px;
+        padding-left: 10px;
+        background: #FFF; }
+        .page #edit p.todo:before {
+          position: absolute;
+          border: 2px solid #3d9970;
+          border-right-width: 0;
+          content: '';
+          top: -1px;
+          left: 0;
+          bottom: -1px; }
+        .page #edit p.todo[data-id~='#done'], .page #edit p.todo[data-id~='#invalid'] {
+          color: #CCC !important;
+          background: transparent !important;
+          border-color: #EEE !important; }
+          .page #edit p.todo[data-id~='#done']:before, .page #edit p.todo[data-id~='#invalid']:before {
+            border-color: #EEE !important; }
+          .page #edit p.todo[data-id~='#done'] .tag, .page #edit p.todo[data-id~='#invalid'] .tag {
+            color: #CCC; }
+          .page #edit p.todo[data-id~='#done'] .mention, .page #edit p.todo[data-id~='#invalid'] .mention {
+            color: #CCC; }
+          .page #edit p.todo[data-id~='#done'] .mark, .page #edit p.todo[data-id~='#invalid'] .mark {
+            color: #CCC; }
+      .page #edit p.title, .page #edit p.heading1, .page #edit p.heading2, .page #edit p.heading3, .page #edit p.heading4 {
         font-family: "AvenirNextLTPro-UltLt", "Avenir Next", "Avenir", sans-serif;
         font-size: 2.5em;
-        padding-bottom: 20px;
+        padding-bottom: 10px;
+        padding-top: 10px;
         margin: 0;
         position: relative;
-        line-height: 1em; }
+        line-height: 1em;
+        margin-bottom: 10px; }
         @media screen and (max-width: 667px) {
-          .page #edit p.title {
-            font-size: 1.5em;
+          .page #edit p.title, .page #edit p.heading1, .page #edit p.heading2, .page #edit p.heading3, .page #edit p.heading4 {
+            font-size: 2em;
             font-family: "AvenirNextLTPro-Regular", "Avenir Next", "Avenir", sans-serif;
-            border-bottom: 1px solid #CCC;
-            margin-bottom: 10px; } }
-        .page #edit p.title.done {
-          color: #666666 !important; }
-    .page #edit p + p.title {
-      padding-top: 20px; }
+            padding-bottom: 0px; } }
+        .page #edit p.title.done, .page #edit p.heading1.done, .page #edit p.heading2.done, .page #edit p.heading3.done, .page #edit p.heading4.done {
+          color: #444444 !important; }
+      .page #edit p.heading2 {
+        font-size: 2em;
+        font-family: "AvenirNextLTPro-Regular", "Avenir Next", "Avenir", sans-serif; }
+        @media screen and (max-width: 667px) {
+          .page #edit p.heading2 {
+            font-size: 1.5em; } }
+      .page #edit p.heading3 {
+        font-size: 1.5em;
+        font-family: "AvenirNextLTPro-Regular", "Avenir Next", "Avenir", sans-serif; }
+        @media screen and (max-width: 667px) {
+          .page #edit p.heading3 {
+            font-size: 1.2em; } }
+      .page #edit p.heading4 {
+        font-size: 1.2em;
+        font-family: "AvenirNextLTPro-Regular", "Avenir Next", "Avenir", sans-serif; }
+        @media screen and (max-width: 667px) {
+          .page #edit p.heading4 {
+            font-size: 1em; } }
+    .page #edit p.todo + p:not(.todo) {
+      margin-top: 10px; }
+      @media screen and (max-width: 667px) {
+        .page #edit p.todo + p:not(.todo) {
+          margin-top: 20px; } }
+    .page #edit p:not(.todo) + p.todo {
+      border-top: 1px solid #EEE;
+      margin-top: 10px; }
+      @media screen and (max-width: 667px) {
+        .page #edit p:not(.todo) + p.todo {
+          margin-top: 20px; } }
 
 @-webkit-keyframes yellow-fade {
   0% {
-    background: lightyellow;
-    -webkit-transform: scale(1.05);
-            transform: scale(1.05); }
+    background: lightyellow; }
 
   100% {
-    background: none;
-    -webkit-transform: scale(1);
-            transform: scale(1); } }
+    background: none; } }
 
 @keyframes yellow-fade {
   0% {
-    background: lightyellow;
-    -webkit-transform: scale(1.05);
-            transform: scale(1.05); }
+    background: lightyellow; }
 
   100% {
-    background: none;
-    -webkit-transform: scale(1);
-            transform: scale(1); } }
+    background: none; } }
 .blink {
   -webkit-animation: yellow-fade 0.25s ease-in 1;
           animation: yellow-fade 0.25s ease-in 1; }
 
 ::-moz-selection {
-  background: rgba(255, 255, 125, 0.99);
+  background: rgba(255, 255, 125, 0.5);
   color: #032764; }
 
 ::selection {
-  background: rgba(255, 255, 125, 0.99);
+  background: rgba(255, 255, 125, 0.5);
   color: #032764; }
 
 #search {
@@ -714,6 +782,7 @@ This file is generated by `grunt build`, do not edit it by hand.
   position: relative;
   display: inline-block;
   vertical-align: middle;
+  font-size: 0.75em;
   zoom: 1;
   *display: inline;
   -webkit-user-select: none;
@@ -733,8 +802,7 @@ This file is generated by `grunt build`, do not edit it by hand.
   z-index: 1010;
   width: 25%;
   border: 1px solid #CCC;
-  background: #fff;
-  font-size: 0.75em; }
+  background: #fff; }
 
 .chosen-container.chosen-with-drop .chosen-drop {
   left: 0; }
@@ -753,11 +821,6 @@ This file is generated by `grunt build`, do not edit it by hand.
   border: 1px solid #aaa;
   -webkit-border-radius: 5px;
           border-radius: 5px;
-  background-color: #fff;
-  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(20%, white), color-stop(50%, #f6f6f6), color-stop(52%, #eeeeee), color-stop(100%, #f4f4f4));
-  background: -webkit-linear-gradient(top, white 20%, #f6f6f6 50%, #eeeeee 52%, #f4f4f4 100%);
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(20%, white), color-stop(50%, #f6f6f6), color-stop(52%, #eeeeee), to(#f4f4f4));
-  background: linear-gradient(top, white 20%, #f6f6f6 50%, #eeeeee 52%, #f4f4f4 100%);
   background-clip: padding-box;
   color: #444;
   text-decoration: none;
@@ -821,7 +884,7 @@ This file is generated by `grunt build`, do not edit it by hand.
   height: auto;
   outline: 0;
   border: 1px solid #aaa;
-  background: white url("chosen-sprite.png") no-repeat 100% -20px;
+  background: transparent url("chosen-sprite.png") no-repeat 100% -20px;
   background: url("chosen-sprite.png") no-repeat 100% -20px;
   font-family: 'Avenir Next', sans-serif;
   line-height: normal;
@@ -937,6 +1000,7 @@ This file is generated by `grunt build`, do not edit it by hand.
           border-radius: 3px;
   padding-left: 10px;
   padding-right: 25px;
+  background-color: #FFF;
   margin-top: 5px;
   margin-right: 5px;
   background-size: 100% 19px;
@@ -1077,7 +1141,7 @@ This file is generated by `grunt build`, do not edit it by hand.
 
 .chosen-rtl .chosen-search input[type="text"] {
   padding: 4px 5px 4px 20px;
-  background: white url("chosen-sprite.png") no-repeat -30px -20px;
+  background: transparent url("chosen-sprite.png") no-repeat -30px -20px;
   background: url("chosen-sprite.png") no-repeat -30px -20px;
   direction: rtl; }
 
@@ -1086,6 +1150,9 @@ This file is generated by `grunt build`, do not edit it by hand.
 
 .chosen-rtl.chosen-container-single.chosen-with-drop .chosen-single div b {
   background-position: -12px 2px; }
+
+input, select {
+  background: transparent; }
 
 /* @end */
 /* @group Retina compatibility */

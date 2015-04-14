@@ -3,9 +3,10 @@ $tablet: "screen and (max-width: 768px)";
 
 // Colours
 
-$fontcolor: #666666;
+$fontcolor: #444;
 $green: #2ECC40;
 $olive: #3D9970;
+$orange: darken(orange, 5%);
 $red: #F75E75;
 $maroon: #85144b;
 $blue: #0074D9;
@@ -21,3 +22,9 @@ $highyellow: #ffffe0;
 $regular: 'AvenirNextLTPro-Regular', 'Avenir Next', 'Avenir', sans-serif;
 $medium: 'AvenirNextLTPro-Medium', 'Avenir Next', 'Avenir', sans-serif;
 $light: 'AvenirNextLTPro-UltLt', 'Avenir Next', 'Avenir', sans-serif;
+
+
+// $regular: 'Frieght Regular', Georgia, Cambria, "Times New Roman", Times,serif;
+// $medium: 'Frieght Medium', Georgia, Cambria, "Times New Roman", Times,serif;
+// $light: 'Frieght Regular', Georgia, Cambria, "Times New Roman", Times,serif;
+

@@ -1,16 +1,37 @@
-Features:
-☐ Collaborate on a files
-☐ Cross platform - instantly updated
-☐ Great for teams or personal notes
-☐ 100% secure over SSL
+Tutorial:
+As well as being awesome at todo lists, Cleared also has many other features.
+Simple markdown is supported e.g. **bold** and *italics*
+Links are automatically detected too... example.com
 
-Advanced tips:
-- create titles by ending with a colon
-- use ⌘+D to toggle as done 
-- use ⌘+↑ and ⌘+↓ to reorder your items 
-- some tags are special #bug, #enhancement, #question 
-- something wrong? mark it as #invalid
-- use ⌘+M to toggle the menu 
-- not signed in? everything is saved in your browser until you do
-- links are automatically detected too... example.com
+• create bullet lists by starting a new line with asterisk+space e.g. '* '
+• second item
+• third item
 
+1. create numbered lists by starting with a number+dot+space e.g. '1. '
+2. second item
+3. third item
+
+Create titles by ending with a colon or beginning with a hash+space  just like markdown...
+
+Heading 1:
+# Heading 1
+## Heading 2
+### Heading 3
+#### Heading 4 
+
+
+Create todo lists by typing a dash+space '- ' 
+☐ use ⌘+D to toggle as done
+☐ use ⌘+↑ and ⌘+↓ to reorder your items
+☐ some tags have special colours #bug, #enhancement, #question
+☐ something need attention? tag it #important
+☒ something wrong? tag it #invalid
+
+Other Features:
+• use ⌘+M to toggle the menu
+• collaborate on a files (sign-in required)
+• cross platform - instantly updated
+• great for teams or personal notes
+• contact nic@nicmulvaney.com to request features
+
+Sign-in for more fun.

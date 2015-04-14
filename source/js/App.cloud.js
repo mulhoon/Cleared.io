@@ -11,6 +11,10 @@ App.cloud = (function () {
 	_files = {};
 
 	var init = function(){
+		// if(true){
+		// 	authCallback(null);
+		// 	return;
+		// }
 		firebase = new Firebase("https://cleared.firebaseio.com/");
 		users = firebase.child("users");
 		files = firebase.child("files");
